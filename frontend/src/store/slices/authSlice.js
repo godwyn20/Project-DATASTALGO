@@ -1,26 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8000/api';
+import authService from '../../services/authService';
 
 export const login = createAsyncThunk(
   'auth/login',
   async ({ username, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/users/login/`, { username, password });
-      if (response.data.access) {
-        localStorage.setItem('token', response.data.access);
-        localStorage.setItem('refreshToken', response.data.refresh);
-      }
-      return response.data;
+      const data = await authService.login(username, password);
+      return data;
     } catch (error) {
-      if (error.response && error.response.data) {
-        return rejectWithValue({
-          message: error.response.data.error || Object.values(error.response.data).flat().join(' ')
-        });
-      }
       return rejectWithValue({
-        message: 'An error occurred during login. Please try again.'
+        message: error.message
       });
     }
   }
@@ -30,73 +19,40 @@ export const register = createAsyncThunk(
   'auth/register',
   async ({ username, email, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/users/`, {
-        username,
-        email,
-        password,
-      });
-      // Check if the response contains user data
-      if (response.data) {
-        return {
-          user: response.data,
-          access: response.data.access,
-          refresh: response.data.refresh
-        };
-      }
-      return rejectWithValue({
-        message: 'Invalid response from server'
-      });
+      const data = await authService.register(username, email, password);
+      return data;
     } catch (error) {
-      if (error.response && error.response.data) {
-        const errorData = error.response.data;
-        let errorMessage = '';
-        
-        // Handle different error response formats
-        if (typeof errorData === 'string') {
-          errorMessage = errorData;
-        } else if (typeof errorData === 'object') {
-          errorMessage = Object.entries(errorData)
-            .map(([key, value]) => {
-              if (Array.isArray(value)) {
-                return `${key}: ${value.join(', ')}`;
-              }
-              return `${key}: ${value}`;
-            })
-            .join('. ');
-        }
-        
-        return rejectWithValue({
-          message: errorMessage || 'Registration failed. Please check your input.'
-        });
-      }
       return rejectWithValue({
-        message: 'An error occurred during registration. Please try again.'
+        message: error.message
       });
     }
   }
 );
 
+const initialState = {
+  user: authService.getCurrentUser(),
+  token: authService.getToken(),
+  refreshToken: authService.getRefreshToken(),
+  isLoading: false,
+  error: null,
+  isAuthenticated: !!authService.getToken()
+};
+
 const authSlice = createSlice({
   name: 'auth',
-  initialState: {
-    user: null,
-    token: localStorage.getItem('token'),
-    refreshToken: localStorage.getItem('refreshToken'),
-    isLoading: false,
-    error: null,
-  },
+  initialState,
   reducers: {
     logout: (state) => {
+      authService.logout();
       state.user = null;
       state.token = null;
       state.refreshToken = null;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      state.isAuthenticated = false;
+      state.error = null;
     },
-    setCredentials: (state, { payload }) => {
-      state.user = payload.user;
-      state.token = payload.token;
-    },
+    clearError: (state) => {
+      state.error = null;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -109,6 +65,8 @@ const authSlice = createSlice({
         state.user = payload.user;
         state.token = payload.access;
         state.refreshToken = payload.refresh;
+        state.isAuthenticated = true;
+        state.error = null;
       })
       .addCase(login.rejected, (state, { payload }) => {
         state.isLoading = false;
@@ -123,6 +81,7 @@ const authSlice = createSlice({
         state.user = payload.user;
         state.token = payload.access;
         state.refreshToken = payload.refresh;
+        state.isAuthenticated = true;
         state.error = null;
       })
       .addCase(register.rejected, (state, { payload }) => {
@@ -132,5 +91,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, setCredentials } = authSlice.actions;
+export const { logout, setCredentials, clearError } = authSlice.actions;
 export default authSlice.reducer;
