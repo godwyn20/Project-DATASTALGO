@@ -5,7 +5,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from .models import SubscriptionPlan, Subscription
 from .serializers import UserSerializer, SubscriptionPlanSerializer, SubscriptionSerializer
+import logging
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -14,16 +16,29 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'user': serializer.data,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            logger.info(f"Received registration request with data: {request.data}")
+            serializer = self.get_serializer(data=request.data)
+            
+            if serializer.is_valid():
+                user = serializer.save()
+                refresh = RefreshToken.for_user(user)
+                response_data = {
+                    'user': serializer.data,
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                }
+                logger.info(f"Successfully registered user: {user.username}")
+                return Response(response_data, status=status.HTTP_201_CREATED)
+            
+            logger.error(f"Validation error during registration: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Unexpected error during registration: {str(e)}")
+            return Response(
+                {'detail': 'An unexpected error occurred during registration.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['post'])
     def login(self, request):
@@ -50,9 +65,6 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Subscription.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

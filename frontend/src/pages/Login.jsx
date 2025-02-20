@@ -1,32 +1,61 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { Box, Container, TextField, Button, Typography, Alert } from '@mui/material';
-import { login } from '../store/slices/authSlice';
+import { Box, Container, TextField, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import { login, clearError } from '../store/slices/authSlice';
 
 function Login() {
   const [formData, setFormData] = useState({
     username: '',
-    password: '',
+    password: ''
   });
+  const [validationErrors, setValidationErrors] = useState({});
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error } = useSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [isAuthenticated, navigate, dispatch]);
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required';
+    }
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(login(formData));
-    if (!result.error) {
-      navigate('/browse');
+    if (!validateForm()) return;
+
+    try {
+      await dispatch(login(formData)).unwrap();
+    } catch (err) {
+      // Error is handled by Redux
     }
   };
 
@@ -35,10 +64,9 @@ function Login() {
       sx={{
         minHeight: '100vh',
         background: 'linear-gradient(45deg, #000000 30%, #1a1a1a 90%)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
       <Container maxWidth="xs">
@@ -49,13 +77,42 @@ function Login() {
             borderRadius: 2,
           }}
         >
-          <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'white' }}>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom 
+            sx={{ 
+              color: 'white',
+              marginBottom: 3,
+              fontWeight: 'bold'
+            }}
+          >
             Sign In
           </Typography>
 
-          {error && <Alert severity="error" sx={{ '& .MuiAlert-message': { color: '#000000' } }}>{error.message}</Alert>}
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                width: '100%', 
+                marginBottom: 2,
+                '& .MuiAlert-message': { 
+                  color: '#000000' 
+                }
+              }}
+            >
+              {error.message}
+            </Alert>
+          )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Box 
+            component="form" 
+            onSubmit={handleSubmit} 
+            sx={{ 
+              width: '100%',
+              mt: 1 
+            }}
+          >
             <TextField
               margin="normal"
               required

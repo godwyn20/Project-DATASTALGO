@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { Box, Container, TextField, Button, Typography, Alert } from '@mui/material';
-import { register } from '../store/slices/authSlice';
+import { Box, Container, TextField, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import { register, clearError } from '../store/slices/authSlice';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -11,57 +11,90 @@ function Register() {
     password: '',
     confirmPassword: ''
   });
+  const [validationErrors, setValidationErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error } = useSelector((state) => state.auth);
+  const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [isAuthenticated, navigate, dispatch]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: ''
+    }));
   };
 
-  const [successMessage, setSuccessMessage] = useState('');
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters long';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        errors.email = 'Please enter a valid email address';
+      }
+    }
+
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters long';
+    }
+
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMessage('');
-    
-    // Validate password match
-    if (formData.password !== formData.confirmPassword) {
-      dispatch({ type: 'auth/setError', payload: { message: 'Passwords do not match' } });
-      return;
-    }
-    
-    // Validate password length
-    if (formData.password.length < 8) {
-      dispatch({ type: 'auth/setError', payload: { message: 'Password must be at least 8 characters long' } });
-      return;
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      dispatch({ type: 'auth/setError', payload: { message: 'Please enter a valid email address' } });
-      return;
-    }
-    
-    const { confirmPassword, ...registerData } = formData;
-    const result = await dispatch(register(registerData));
-    
-    if (!result.error) {
+    if (!validateForm()) return;
+
+    try {
+      const { confirmPassword, ...registerData } = formData;
+      await dispatch(register(registerData)).unwrap();
+      setSuccessMessage('Registration successful! Redirecting to login...');
       setFormData({
         username: '',
         email: '',
         password: '',
         confirmPassword: ''
       });
-      setSuccessMessage('Registration successful! Redirecting to login page...');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
+    } catch (err) {
+      const errorMessage = err.message || 'Registration failed. Please try again.';
+      setValidationErrors(prev => ({
+        ...prev,
+        submit: errorMessage
+      }));
     }
   };
 
