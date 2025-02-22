@@ -11,17 +11,20 @@ const Search = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const performSearch = async (query) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
+  const performSearch = async (query, category) => {
     setLoading(true);
     setError(null);
 
     try {
-      const results = await bookService.searchBooks(query.trim());
+      let results;
+      if (category) {
+        results = await bookService.searchBooksByCategory(category);
+      } else if (query.trim()) {
+        results = await bookService.searchBooks(query.trim());
+      } else {
+        setSearchResults([]);
+        return;
+      }
       setSearchResults(results);
     } catch (err) {
       setError('Failed to fetch search results. Please try again.');
@@ -33,8 +36,9 @@ const Search = () => {
 
   useEffect(() => {
     const query = searchParams.get('q') || '';
+    const category = searchParams.get('category') || '';
     setSearchQuery(query);
-    performSearch(query);
+    performSearch(query, category);
   }, [searchParams]);
 
   const handleSearchChange = (event) => {
@@ -50,12 +54,6 @@ const Search = () => {
 
   return (
     <Container maxWidth="lg" sx={{ pt: 10, pb: 0, minHeight: '100vh' }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Results for: "{searchQuery}"
-        </Typography>
-      </Box>
-      
       {loading ? (
         <Box display="flex" justifyContent="center" alignItems="center" sx={{ my: 4 }}>
           <CircularProgress />
