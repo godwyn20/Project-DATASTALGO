@@ -11,6 +11,7 @@ import Browse from './pages/Browse';
 import Search from './pages/Search';
 import Books from './pages/Books';
 import BookDetail from './pages/BookDetail';
+import Categories from './pages/Categories';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/books" element={<Books />} />
                 <Route path="/book/:id" element={<BookDetail />} />
+                <Route path="/categories" element={<Categories />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

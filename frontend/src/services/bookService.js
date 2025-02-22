@@ -75,9 +75,26 @@ class BookService {
     }
   }
 
-  async getBooksByCategory(category) {
-    const response = await api.get(`/api/books/category/${category}/`);
-    return response.data;
+  async searchBooksByCategory(category) {
+    try {
+      const response = await fetch(`https://openlibrary.org/subjects/${encodeURIComponent(category.toLowerCase())}.json?limit=20`);
+      const data = await response.json();
+
+      // Transform the response to match our app's format
+      const transformedResults = data.works.map(book => ({
+        open_library_id: book.key.split('/').pop(),
+        title: book.title,
+        authors: book.authors ? book.authors.map(author => author.name).join(', ') : 'Unknown Author',
+        thumbnail_url: book.cover_id ? `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg` : null,
+        first_publish_year: book.first_publish_year,
+        language: book.language ? book.language[0] : null
+      }));
+
+      return transformedResults;
+    } catch (error) {
+      console.error('Error searching books by category:', error);
+      throw error;
+    }
   }
 }
 
