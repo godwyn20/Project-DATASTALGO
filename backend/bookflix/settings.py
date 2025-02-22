@@ -108,5 +108,3 @@ CORS_ALLOW_CREDENTIALS = True
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
 
-# Google Books API settings
-GOOGLE_BOOKS_API_KEY = 'YOUR_API_KEY_HERE'
