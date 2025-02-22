@@ -84,8 +84,11 @@ const Navigation = () => {
   };
 
   const handleSearch = (e) => {
-    if (e.key === 'Enter') {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    if (e.type === 'click' || (e.type === 'keypress' && e.key === 'Enter')) {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      }
     }
   };
 
@@ -132,7 +135,7 @@ const Navigation = () => {
         </Stack>
 
         <Search>
-          <SearchIconWrapper>
+          <SearchIconWrapper onClick={handleSearch}>
             <SearchIcon />
           </SearchIconWrapper>
           <StyledInputBase

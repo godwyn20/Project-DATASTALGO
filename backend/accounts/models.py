@@ -4,7 +4,7 @@ from django.utils import timezone
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
-    is_subscribed = models.BooleanField(default=False)
+    is_subscribed = models.BooleanField(default=False, null=True)
     subscription_end_date = models.DateTimeField(null=True, blank=True)
 
     groups = models.ManyToManyField(

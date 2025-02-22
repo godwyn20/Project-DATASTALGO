@@ -7,8 +7,9 @@ class BookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ['id', 'google_books_id', 'title', 'authors', 'description',
-                'thumbnail_url', 'preview_link', 'is_favorited', 'reading_progress']
+        fields = ['id', 'open_library_id', 'title', 'authors', 'description',
+                'cover_id', 'thumbnail_url', 'preview_link', 'publication_date',
+                'isbn', 'number_of_pages', 'subjects', 'is_favorited', 'reading_progress']
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')

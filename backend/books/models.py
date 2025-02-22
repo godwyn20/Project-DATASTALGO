@@ -8,6 +8,7 @@ class Book(models.Model):
     description = models.TextField(blank=True)
     thumbnail_url = models.URLField(blank=True)
     preview_link = models.URLField(blank=True)
+    publication_date = models.DateField(null=True, blank=True)
     favorited_by = models.ManyToManyField(settings.AUTH_USER_MODEL, through='UserFavorite', related_name='favorite_books')
 
     def __str__(self):
