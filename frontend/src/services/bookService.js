@@ -1,4 +1,5 @@
 import api from './api';
+import subscriptionService, { SubscriptionTiers, SubscriptionFeatures } from './subscriptionService';
 
 class BookService {
   async getTrendingBooks() {
@@ -59,6 +60,14 @@ class BookService {
       // Fetch additional details from Open Library
       const olResponse = await fetch(`https://openlibrary.org/works/${bookId}.json`);
       const olData = await olResponse.json();
+      
+      // Check subscription access
+      const subscription = await subscriptionService.getCurrentSubscription();
+      const canAccessPremiumBooks = subscriptionService.checkFeatureAccess(subscription.tier, 'canAccessPremiumBooks');
+      
+      if (bookData.isPremium && !canAccessPremiumBooks) {
+        throw new Error('Upgrade your subscription to access premium books');
+      }
       
       // Merge Open Library data with our data, prioritizing our API's title
       return {
