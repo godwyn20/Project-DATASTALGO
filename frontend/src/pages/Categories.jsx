@@ -11,8 +11,8 @@ const categories = [
   { id: 'history', name: 'History', image: '/categories/history.png' },
   { id: 'biography', name: 'Biography', image: '/categories/biography.png' },
   { id: 'poetry', name: 'Poetry', image: '/categories/poetry.png' },
-  { id: 'drama', name: 'Drama', image: '//categories/drama.png' },
-  { id: 'romance', name: 'Romance', image: '//categories/romance.png' },
+  { id: 'drama', name: 'Drama', image: '/categories/drama.png' },
+  { id: 'romance', name: 'Romance', image: '/categories/romance.png' },
   { id: 'technology', name: 'Technology', image: '/categories/technology.png' },
 ];
 
