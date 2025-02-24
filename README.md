@@ -38,7 +38,7 @@ py manage.py runserver
 ```
 
 In a new terminal:
-```
+
 ```
 cd frontend
 ```
