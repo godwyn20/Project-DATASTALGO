@@ -16,9 +16,9 @@ import {
   Search as SearchIcon,
   AccountCircle,
   Home,
-  Book,
   Category,
   Collections,
+  PriceChange,
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
 import { logout } from '../store/slices/authSlice';
@@ -110,11 +110,11 @@ const Navigation = () => {
           </Button>
           <Button
             component={Link}
-            to="/books"
+            to="/subscriptions"
             color="inherit"
-            startIcon={<Book />}
+            startIcon={<PriceChange />}
           >
-            Books
+            Pricing
           </Button>
           <Button
             component={Link}
