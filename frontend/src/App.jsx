@@ -4,13 +4,12 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import Navigation from './components/Navigation';
+import Subscriptions from './pages/Subscriptions';
 
 // Import pages
 import Home from './pages/Home';
 import Browse from './pages/Browse';
 import Search from './pages/Search';
-import Books from './pages/Books';
-import BookDetail from './pages/BookDetail';
 import Categories from './pages/Categories';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
@@ -57,9 +56,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/browse" element={<Browse />} />
                 <Route path="/search" element={<Search />} />
-                <Route path="/books" element={<Books />} />
-                <Route path="/book/:id" element={<BookDetail />} />
                 <Route path="/categories" element={<Categories />} />
+                <Route path="/subscriptions" element={<Subscriptions />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
