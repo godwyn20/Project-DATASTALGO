@@ -10,6 +10,7 @@ function Login() {
     password: ''
   });
   const [validationErrors, setValidationErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -54,6 +55,11 @@ function Login() {
 
     try {
       await dispatch(login(formData)).unwrap();
+      setSuccessMessage('Login successful! Welcome back to BookFlix!');
+      setTimeout(() => {
+        dispatch(clearError());
+        navigate('/');
+      }, 2000);
     } catch (err) {
       // Error is handled by Redux
     }
@@ -90,6 +96,23 @@ function Login() {
             Sign In
           </Typography>
 
+          {successMessage && (
+            <Alert 
+              severity="success" 
+              sx={{ 
+                width: '100%', 
+                marginBottom: 2,
+                '& .MuiAlert-message': { 
+                  color: '#ffffff' 
+                },
+                '& .MuiAlert-icon': {
+                  color: '#ffffff'
+                }
+              }}
+            >
+              {successMessage}
+            </Alert>
+          )}
           {error && (
             <Alert 
               severity="error" 
