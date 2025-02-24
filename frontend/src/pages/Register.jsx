@@ -6,10 +6,14 @@ import { register, clearError } from '../store/slices/authSlice';
 
 function Register() {
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    birthday: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    phoneNumber: '',
+    username: '',
+    password: ''
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
@@ -41,12 +45,23 @@ function Register() {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.username.trim()) {
-      errors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      errors.username = 'Username must be at least 3 characters long';
+    
+    // Validate First Name
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First Name is required';
     }
 
+    // Validate Last Name
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last Name is required';
+    }
+
+    // Validate Birthday
+    if (!formData.birthday) {
+      errors.birthday = 'Birthday is required';
+    }
+
+    // Validate Email
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
     } else {
@@ -56,16 +71,28 @@ function Register() {
       }
     }
 
+    // Validate Phone Number
+    if (!formData.phoneNumber.trim()) {
+      errors.phoneNumber = 'Phone Number is required';
+    } else {
+      const phoneRegex = /^[0-9]{11}$/;
+      if (!phoneRegex.test(formData.phoneNumber)) {
+        errors.phoneNumber = 'Please enter a valid 11-digit phone number';
+      }
+    }
+
+    // Validate Username
+    if (!formData.username.trim()) {
+      errors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      errors.username = 'Username must be at least 3 characters long';
+    }
+
+    // Validate Password
     if (!formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters long';
-    }
-
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
     }
 
     setValidationErrors(errors);
@@ -77,17 +104,21 @@ function Register() {
     if (!validateForm()) return;
 
     try {
-      const { confirmPassword, ...registerData } = formData;
-      await dispatch(register(registerData)).unwrap();
-      setSuccessMessage('Registration successful! Redirecting to login...');
+      const response = await dispatch(register(formData)).unwrap();
+      setSuccessMessage('Registration successful! Welcome to Bookflix!');
       setFormData({
-        username: '',
+        firstName: '',
+        middleName: '',
+        lastName: '',
+        birthday: '',
         email: '',
-        password: '',
-        confirmPassword: ''
+        phoneNumber: '',
+        username: '',
+        password: ''
       });
       setTimeout(() => {
-        navigate('/login');
+        dispatch(clearError());
+        navigate('/');
       }, 2000);
     } catch (err) {
       const errorMessage = err.message || 'Registration failed. Please try again.';
@@ -95,6 +126,19 @@ function Register() {
         ...prev,
         submit: errorMessage
       }));
+    }
+  };
+
+  const textFieldStyle = {
+    input: { color: 'white' },
+    '& label': { color: 'white' },
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': { borderColor: 'white' },
+      '&:hover fieldset': { borderColor: 'white' },
+      '&.Mui-focused fieldset': { borderColor: 'white' }
+    },
+    '& input[type="date"]::-webkit-calendar-picker-indicator': {
+      filter: 'invert(1)'
     }
   };
 
@@ -109,12 +153,13 @@ function Register() {
         alignItems: 'center',
       }}
     >
-      <Container maxWidth="xs">
+      <Container maxWidth="md">
         <Box
           sx={{
             backgroundColor: 'rgba(0, 0, 0, 0.75)',
             padding: 4,
             borderRadius: 2,
+            width: '100%'
           }}
         >
           <Typography variant="h4" component="h1" gutterBottom sx={{ color: 'white' }}>
@@ -122,108 +167,148 @@ function Register() {
           </Typography>
 
           {error && <Alert severity="error" sx={{ '& .MuiAlert-message': { color: '#000000' } }}>{error.message}</Alert>}
-          {successMessage && <Alert severity="success" sx={{ '& .MuiAlert-message': { color: '#000000' } }}>{successMessage}</Alert>}
+          {successMessage && <Alert severity="success" sx={{ 
+            width: '100%',
+            marginBottom: 2,
+            backgroundColor: '#2e7d32',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            '& .MuiAlert-message': { 
+              color: '#ffffff',
+              textAlign: 'center'
+            },
+            '& .MuiAlert-icon': {
+              color: '#ffffff'
+            }
+          }}>{successMessage}</Alert>}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              autoComplete="username"
-              autoFocus
-              value={formData.username}
-              onChange={handleChange}
-              sx={{ 
-                mb: 2,
-                input: { color: 'white' },
-                '& label': { color: 'white' },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'white' },
-                  '&:hover fieldset': { borderColor: 'white' },
-                  '&.Mui-focused fieldset': { borderColor: 'white' }
-                }
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange}
-              sx={{ 
-                mb: 2,
-                input: { color: 'white' },
-                '& label': { color: 'white' },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'white' },
-                  '&:hover fieldset': { borderColor: 'white' },
-                  '&.Mui-focused fieldset': { borderColor: 'white' }
-                }
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-              sx={{
-                mb: 2,
-                input: { color: 'white' },
-                '& label': { color: 'white' },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'white' },
-                  '&:hover fieldset': { borderColor: 'white' },
-                  '&.Mui-focused fieldset': { borderColor: 'white' }
-                }
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="confirmPassword"
-              label="Confirm Password"
-              type="password"
-              id="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              sx={{
-                mb: 3,
-                input: { color: 'white' },
-                '& label': { color: 'white' },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'white' },
-                  '&:hover fieldset': { borderColor: 'white' },
-                  '&.Mui-focused fieldset': { borderColor: 'white' }
-                }
-              }}
-            />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                required
+                fullWidth
+                id="firstName"
+                label="First Name"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                error={!!validationErrors.firstName}
+                helperText={validationErrors.firstName}
+                sx={textFieldStyle}
+              />
+              <TextField
+                required
+                fullWidth
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleChange}
+                error={!!validationErrors.email}
+                helperText={validationErrors.email}
+                sx={textFieldStyle}
+              />
+              <TextField
+                fullWidth
+                id="middleName"
+                label="Middle Name (Optional)"
+                name="middleName"
+                value={formData.middleName}
+                onChange={handleChange}
+                sx={textFieldStyle}
+              />
+              <TextField
+                required
+                fullWidth
+                id="phoneNumber"
+                label="Phone Number"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                error={!!validationErrors.phoneNumber}
+                helperText={validationErrors.phoneNumber}
+                sx={textFieldStyle}
+              />
+              <TextField
+                required
+                fullWidth
+                id="lastName"
+                label="Last Name"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                error={!!validationErrors.lastName}
+                helperText={validationErrors.lastName}
+                sx={textFieldStyle}
+              />
+              <TextField
+                required
+                fullWidth
+                id="username"
+                label="Username"
+                name="username"
+                autoComplete="username"
+                value={formData.username}
+                onChange={handleChange}
+                error={!!validationErrors.username}
+                helperText={validationErrors.username}
+                sx={textFieldStyle}
+              />
+              <TextField
+                required
+                fullWidth
+                id="birthday"
+                label="Birthday"
+                name="birthday"
+                type="date"
+                value={formData.birthday}
+                onChange={handleChange}
+                error={!!validationErrors.birthday}
+                helperText={validationErrors.birthday}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={textFieldStyle}
+              />
+              <TextField
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type="password"
+                id="password"
+                autoComplete="new-password"
+                value={formData.password}
+                onChange={handleChange}
+                error={!!validationErrors.password}
+                helperText={validationErrors.password}
+                sx={textFieldStyle}
+              />
+            </Box>
+
             <Button
               type="submit"
               fullWidth
               variant="contained"
+              sx={{
+                mt: 3,
+                mb: 2,
+                bgcolor: '#ff0000',
+                '&:hover': {
+                  bgcolor: '#cc0000'
+                }
+              }}
               disabled={isLoading}
-              sx={{ mb: 2, backgroundColor: '#e50914', '&:hover': { backgroundColor: '#b20710' } }}
             >
-              {isLoading ? 'Signing up...' : 'Sign Up'}
+              {isLoading ? <CircularProgress size={24} /> : 'Sign Up'}
             </Button>
-            <Typography variant="body2" align="center" sx={{ color: 'white' }}>
+
+            <Typography variant="body2" sx={{ mt: 2, textAlign: 'center', color: 'white' }}>
               Already have an account?{' '}
-              <Link to="/login" style={{ color: '#e50914', textDecoration: 'none' }}>
-                Sign in now
+              <Link to="/login" style={{ color: '#ff0000', textDecoration: 'none' }}>
+                Sign In
               </Link>
             </Typography>
           </Box>
