@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Box, Container, Typography, Grid, Paper, Button, Chip, Stack } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Box, Container, Typography, Grid, Paper, Button, Chip, Stack, Alert } from '@mui/material';
 import BookService from '../services/bookService';
+import subscriptionService, { SubscriptionTiers } from '../services/subscriptionService';
 
 const BookDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
-    const fetchBookDetails = async () => {
+    const fetchData = async () => {
       try {
-        const data = await BookService.getBookDetails(id);
-        setBook(data);
+        const [bookData, subscriptionData] = await Promise.all([
+          BookService.getBookDetails(id),
+          subscriptionService.getCurrentSubscription()
+        ]);
+        setBook(bookData);
+        setSubscription(subscriptionData);
       } catch (err) {
         setError(err.message || 'Failed to fetch book details');
       } finally {
@@ -21,8 +28,12 @@ const BookDetail = () => {
       }
     };
 
-    fetchBookDetails();
+    fetchData();
   }, [id]);
+
+  const handleUpgradeClick = () => {
+    navigate('/subscriptions');
+  };
 
   if (loading) return (
     <Container>
@@ -32,7 +43,21 @@ const BookDetail = () => {
 
   if (error) return (
     <Container>
-      <Typography color="error">{error}</Typography>
+      <Box sx={{ mt: 4 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        {error.includes('subscription') && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleUpgradeClick}
+            sx={{ mt: 2 }}
+          >
+            Upgrade Subscription
+          </Button>
+        )}
+      </Box>
     </Container>
   );
 
@@ -43,8 +68,21 @@ const BookDetail = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 0, minHeight: '100vh' }}>
+    <Container maxWidth="lg" sx={{ py: 4, minHeight: '100vh' }}>
       <Paper elevation={3} sx={{ p: { xs: 2, md: 3 }, height: '100%', borderRadius: 0 }}>
+        {book.isPremium && subscription?.tier !== SubscriptionTiers.PREMIUM && (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            This is a premium book. Upgrade your subscription to access premium content.
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleUpgradeClick}
+              sx={{ ml: 2 }}
+            >
+              Upgrade Now
+            </Button>
+          </Alert>
+        )}
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             {book.covers && book.covers[0] ? (
@@ -85,7 +123,8 @@ const BookDetail = () => {
               gutterBottom 
               sx={{ 
                 wordBreak: 'break-word',
-                mb: 2
+                mb: 2,
+                mt: 2
               }}
             >
               {book.title || 'Untitled'}
@@ -104,46 +143,34 @@ const BookDetail = () => {
               </Typography>
             )}
             {book.description && (
-              <Typography variant="body1" paragraph sx={{ mt: 3 }}>
+              <Typography 
+                variant="body1" 
+                paragraph
+                sx={{ 
+                  mb: 4,
+                  lineHeight: 1.8
+                }}
+              >
                 {book.description}
               </Typography>
             )}
-            
             {book.subjects && book.subjects.length > 0 && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" gutterBottom>Subjects</Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" gutterBottom>
+                  Subjects
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   {book.subjects.map((subject, index) => (
-                    <Chip key={index} label={subject} variant="outlined" />
-                  ))}
-                </Stack>
-              </Box>
-            )}
-
-            {book.links && book.links.length > 0 && (
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" gutterBottom>External Links</Typography>
-                <Stack direction="row" spacing={2}>
-                  {book.links.map((link, index) => (
-                    <Button
+                    <Chip
                       key={index}
+                      label={subject}
+                      sx={{ m: 0.5 }}
                       variant="outlined"
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {link.title}
-                    </Button>
+                    />
                   ))}
                 </Stack>
               </Box>
             )}
-
-            <Box sx={{ mt: 4 }}>
-              <Button variant="contained" color="primary" onClick={() => BookService.toggleFavorite(id)}>
-                Add to Favorites
-              </Button>
-            </Box>
           </Grid>
         </Grid>
       </Paper>

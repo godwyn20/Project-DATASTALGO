@@ -1,53 +1,98 @@
-import React from 'react';
-import { Container, Grid, Card, CardContent, Typography, Button, List, ListItem, ListItemIcon, ListItemText, Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Grid, Card, CardContent, Typography, Button, List, ListItem, ListItemIcon, ListItemText, Box, Snackbar, Alert } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
+import subscriptionService, { SubscriptionTiers, SubscriptionFeatures } from '../services/subscriptionService';
 
 const subscriptionPlans = [
   {
-    id: 'daily',
+    id: SubscriptionTiers.QUICK_READ,
     title: 'Quick Read',
-    price: '39',
+    price: '20',
     features: [
       'Full access to all books',
-      '24-hour unlimited reading',
-      'Access on all devices',
-      'Offline reading'
+      'Up to 10 books per month',
+      'Up to 5 downloads per month',
+      'Perfect for casual readers'
+    ],
+    color: '#4caf50'
+  },
+  {
+    id: SubscriptionTiers.EXPLORER,
+    title: 'Explorer',
+    price: '49',
+    features: [
+      'Full access to all books',
+      'Up to 20 books per month',
+      'Up to 10 downloads per month',
+      'Great for regular readers'
     ],
     color: '#2196f3'
   },
   {
-    id: 'weekly',
-    title: 'Explorer',
-    price: '129',
-    features: [
-      'Full access to all books',
-      '7-day unlimited reading',
-      'Access on all devices',
-      'Offline reading',
-      'Bookmark synchronization'
-    ],
-    color: '#9c27b0'
-  },
-  {
-    id: 'monthly',
+    id: SubscriptionTiers.BOOKWORM,
     title: 'Bookworm',
-    price: '899',
+    price: '99',
     features: [
       'Full access to all books',
-      '30-day unlimited reading',
-      'Access on all devices',
-      'Offline reading',
-      'Bookmark synchronization',
-      'Priority support'
+      'Unlimited books per month',
+      'Unlimited downloads per month',
+      'Ideal for avid readers'
     ],
     color: '#f44336'
   }
 ];
 
 const Subscriptions = () => {
-  const handleSubscribe = (planId) => {
-    // TODO: Implement subscription logic
-    console.log(`Subscribing to ${planId} plan`);
+  const [currentTier, setCurrentTier] = useState(SubscriptionTiers.QUICK_READ);
+  const [message, setMessage] = useState({ open: false, text: '', severity: 'success' });
+
+  useEffect(() => {
+    const fetchCurrentSubscription = async () => {
+      try {
+        const subscription = await subscriptionService.getCurrentSubscription();
+        setCurrentTier(subscription.tier);
+      } catch (error) {
+        console.error('Error fetching subscription:', error);
+        setMessage({
+          open: true,
+          text: 'Failed to fetch current subscription',
+          severity: 'error'
+        });
+      }
+    };
+    fetchCurrentSubscription();
+  }, []);
+
+  const handleSubscribe = async (planId) => {
+    try {
+      if (planId === currentTier) {
+        setMessage({
+          open: true,
+          text: 'You are already subscribed to this plan',
+          severity: 'info'
+        });
+        return;
+      }
+
+      await subscriptionService.upgradeSubscription(planId);
+      setCurrentTier(planId);
+      setMessage({
+        open: true,
+        text: 'Successfully upgraded subscription',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error upgrading subscription:', error);
+      setMessage({
+        open: true,
+        text: 'Failed to upgrade subscription',
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleCloseMessage = () => {
+    setMessage({ ...message, open: false });
   };
 
   return (
@@ -82,18 +127,18 @@ const Subscriptions = () => {
                     ₱{plan.price}
                   </Typography>
                   <Typography variant="subtitle1" color="text.secondary">
-                
+                    per month
                   </Typography>
                 </Box>
                 <List>
                   {plan.features.map((feature, index) => (
-                    <ListItem key={index} sx={{ py: 0.5 }}>
+                    <ListItem key={`${plan.id}-feature-${index}`} sx={{ py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckIcon sx={{ color: plan.color }} />
                       </ListItemIcon>
                       <ListItemText primary={feature} />
                     </ListItem>
-                  ))}
+                  ))}                  
                 </List>
               </CardContent>
               <Box sx={{ p: 2, textAlign: 'center' }}>
@@ -101,21 +146,35 @@ const Subscriptions = () => {
                   variant="contained"
                   size="large"
                   onClick={() => handleSubscribe(plan.id)}
+                  disabled={plan.id === currentTier}
                   sx={{
                     bgcolor: plan.color,
                     '&:hover': {
                       bgcolor: plan.color,
                       filter: 'brightness(0.9)'
+                    },
+                    '&.Mui-disabled': {
+                      bgcolor: `${plan.color}80`
                     }
                   }}
                 >
-                  Subscribe Now
+                  {plan.id === currentTier ? 'Current Plan' : 'Subscribe Now'}
                 </Button>
               </Box>
             </Card>
           </Grid>
         ))}
       </Grid>
+      <Snackbar
+        open={message.open}
+        autoHideDuration={6000}
+        onClose={handleCloseMessage}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseMessage} severity={message.severity}>
+          {message.text}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
