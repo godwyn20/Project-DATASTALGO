@@ -42,12 +42,28 @@ const BookRow = ({ title, books }) => {
               },
             }}
           >
-            <CardMedia
-              component="img"
-              height="300"
-              image={book.cover_image || 'https://via.placeholder.com/200x300'}
-              alt={book.title}
-            />
+            <Box
+              sx={{
+                height: '300px',
+                backgroundColor: !book.cover_image ? '#424242' : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              {book.cover_image ? (
+                <CardMedia
+                  component="img"
+                  height="300"
+                  image={book.cover_image}
+                  alt={book.title}
+                />
+              ) : (
+                <Typography variant="h6" sx={{ color: 'white', p: 2, textAlign: 'center' }}>
+                  {book.title}
+                </Typography>
+              )}
+            </Box>
             <CardContent>
               <Typography variant="subtitle1" component="div" sx={{ color: 'white' }}>
                 {book.title}

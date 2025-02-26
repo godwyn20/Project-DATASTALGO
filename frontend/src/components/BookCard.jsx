@@ -14,11 +14,21 @@ const BookCard = ({ title, author, cover, description }) => {
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      <img
-        src={cover || 'https://via.placeholder.com/200x300'}
-        alt={title}
-        className="w-full h-full object-cover opacity-90"
-      />
+      <div
+        className={`w-full h-full ${!cover ? 'bg-gray-700' : ''}`}
+      >
+        {cover ? (
+          <img
+            src={cover}
+            alt={title}
+            className="w-full h-full object-cover opacity-90"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-white text-lg">{title}</span>
+          </div>
+        )}
+      </div>
       <motion.div
         className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent p-4"
         initial={{ opacity: 0, y: 20 }}

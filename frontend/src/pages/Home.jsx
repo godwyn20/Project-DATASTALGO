@@ -11,31 +11,26 @@ const Home = () => {
       id: 1,
       title: 'Book 1',
       author: 'Author 1',
-      cover_image: 'https://via.placeholder.com/200x300',
     },
     {
       id: 2,
       title: 'Book 2',
       author: 'Author 2',
-      cover_image: 'https://via.placeholder.com/200x300',
     },
     {
       id: 3,
       title: 'Book 3',
       author: 'Author 3',
-      cover_image: 'https://via.placeholder.com/200x300',
     },
     {
       id: 4,
       title: 'Book 4',
       author: 'Author 4',
-      cover_image: 'https://via.placeholder.com/200x300',
     },
     {
       id: 5,
       title: 'Book 5',
       author: 'Author 5',
-      cover_image: 'https://via.placeholder.com/200x300',
     },
   ];
 
