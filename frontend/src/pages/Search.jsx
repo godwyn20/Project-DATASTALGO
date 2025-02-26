@@ -70,17 +70,28 @@ const Search = () => {
             <Grid item xs={12} sm={6} md={4} lg={3} key={book.open_library_id}>
               <Card component={Link} to={`/book/${book.open_library_id}`} sx={{ textDecoration: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                  <CardMedia
-                    component="img"
-                    height="280"
-                    image={book.thumbnail_url || '/placeholder-book.png'}
-                    alt={book.title}
+                  <Box
                     sx={{
-                      objectFit: 'cover',
-                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                      p: book.thumbnail_url ? 0 : 2
+                      height: '300px',
+                      backgroundColor: !book.thumbnail_url ? '#424242' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
-                  />
+                  >
+                    {book.thumbnail_url ? (
+                      <CardMedia
+                        component="img"
+                        height="300"
+                        image={book.thumbnail_url}
+                        alt={book.title}
+                      />
+                    ) : (
+                      <Typography variant="h6" sx={{ color: 'white', p: 2, textAlign: 'center' }}>
+                        {book.title}
+                      </Typography>
+                    )}
+                  </Box>
                   <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Typography gutterBottom variant="h6" component="div" sx={{ 
                       overflow: 'hidden',
@@ -121,3 +132,4 @@ const Search = () => {
 };
 
 export default Search;
+

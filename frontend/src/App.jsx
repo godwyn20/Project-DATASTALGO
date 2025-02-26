@@ -1,8 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { ThemeProvider, createTheme } from '@mui/material';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { AuthProvider } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import Subscriptions from './pages/Subscriptions';
 import BookDetail from './pages/BookDetail';
@@ -49,24 +51,26 @@ function App() {
   return (
     <Provider store={store}>
       <ThemeProvider theme={darkTheme}>
-        <Router>
-          <div className="flex flex-col">
-            <Navigation />
-            <main className="flex-1 pt-16">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/browse" element={<Browse />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/book/:id" element={<BookDetail />} />
-                <Route path="/subscriptions" element={<Subscriptions />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-              </Routes>
-            </main>
-          </div>
-        </Router>
+        <AuthProvider>
+          <Router>
+            <div className="flex flex-col">
+              <Navigation />
+              <main className="flex-1 pt-16">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/browse" element={<Browse />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/book/:id" element={<BookDetail />} />
+                  <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/login" element={<ProtectedRoute requireAuth={false}><Login /></ProtectedRoute>} />
+                  <Route path="/register" element={<ProtectedRoute requireAuth={false}><Register /></ProtectedRoute>} />
+                </Routes>
+              </main>
+            </div>
+          </Router>
+        </AuthProvider>
       </ThemeProvider>
     </Provider>
   );

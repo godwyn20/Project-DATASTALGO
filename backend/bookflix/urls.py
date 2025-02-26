@@ -15,6 +15,7 @@ router.register(r'reading-history', ReadingHistoryViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
-    re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
+    path('api/', include('accounts.urls')),
+    path('api/books/', include('books.urls')),
+    path('api/subscriptions/', include('subscriptions.urls')),
 ]

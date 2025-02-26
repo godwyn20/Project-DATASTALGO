@@ -1,26 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8000/api';
+import authService from '../../services/authService';
 
 export const login = createAsyncThunk(
   'auth/login',
   async ({ username, password }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/users/login/`, { username, password });
-      if (response.data.access) {
-        localStorage.setItem('token', response.data.access);
-        localStorage.setItem('refreshToken', response.data.refresh);
-      }
-      return response.data;
+      const response = await authService.login({ username, password });
+      return response;
     } catch (error) {
-      if (error.response && error.response.data) {
-        return rejectWithValue({
-          message: error.response.data.error || Object.values(error.response.data).flat().join(' ')
-        });
-      }
       return rejectWithValue({
-        message: 'An error occurred during login. Please try again.'
+        message: error.message
       });
     }
   }
@@ -28,26 +17,13 @@ export const login = createAsyncThunk(
 
 export const register = createAsyncThunk(
   'auth/register',
-  async ({ username, email, password }, { rejectWithValue }) => {
+  async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/users/`, {
-        username,
-        email,
-        password,
-      });
-      if (response.data.access) {
-        localStorage.setItem('token', response.data.access);
-        localStorage.setItem('refreshToken', response.data.refresh);
-      }
-      return response.data;
+      const response = await authService.register(userData);
+      return response;
     } catch (error) {
-      if (error.response && error.response.data) {
-        return rejectWithValue({
-          message: Object.values(error.response.data).flat().join(' ')
-        });
-      }
       return rejectWithValue({
-        message: 'An error occurred during registration. Please try again.'
+        message: error.message
       });
     }
   }
@@ -56,23 +32,25 @@ export const register = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
-    token: localStorage.getItem('token'),
+    user: authService.getCurrentUser(),
+    token: authService.getToken(),
     refreshToken: localStorage.getItem('refreshToken'),
     isLoading: false,
     error: null,
+    isAuthenticated: authService.isAuthenticated(),
   },
   reducers: {
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.refreshToken = null;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      state.isAuthenticated = false;
+      authService.logout();
     },
     setCredentials: (state, { payload }) => {
       state.user = payload.user;
       state.token = payload.token;
+      state.isAuthenticated = true;
     },
     clearError: (state) => {
       state.error = null;
@@ -89,10 +67,12 @@ const authSlice = createSlice({
         state.user = payload.user;
         state.token = payload.access;
         state.refreshToken = payload.refresh;
+        state.isAuthenticated = true;
       })
       .addCase(login.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.error = payload;
+        state.isAuthenticated = false;
       })
       .addCase(register.pending, (state) => {
         state.isLoading = true;
@@ -103,10 +83,12 @@ const authSlice = createSlice({
         state.user = payload.user;
         state.token = payload.access;
         state.refreshToken = payload.refresh;
+        state.isAuthenticated = true;
       })
       .addCase(register.rejected, (state, { payload }) => {
         state.isLoading = false;
         state.error = payload;
+        state.isAuthenticated = false;
       });
   },
 });
