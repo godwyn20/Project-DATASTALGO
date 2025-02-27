@@ -19,18 +19,19 @@ class BookService {
 
   async searchBooks(query) {
     try {
-      // Search OpenLibrary directly
-      const response = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`);
-      const data = await response.json();
-
-      // Transform the response to match our app's format
-      const transformedResults = data.docs.slice(0, 20).map(book => ({
-        open_library_id: book.key.split('/').pop(),
+      // Use Google Books API through our backend
+      const response = await api.get('/api/googlebooks/googlebooks/search/', {
+        params: { q: query }
+      });
+      
+      // The response is already transformed by our backend
+      const transformedResults = response.data.map(book => ({
+        google_books_id: book.google_books_id,
         title: book.title,
-        authors: book.author_name ? book.author_name.join(', ') : 'Unknown Author',
-        thumbnail_url: book.cover_i ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg` : null,
-        first_publish_year: book.first_publish_year,
-        language: book.language ? book.language[0] : null
+        authors: book.authors,
+        thumbnail_url: book.thumbnail_url,
+        publication_date: book.publication_date,
+        language: book.language
       }));
 
       return transformedResults;
@@ -54,12 +55,9 @@ class BookService {
 
   async getBookDetails(bookId) {
     try {
-      const response = await api.get(`/api/books/${bookId}/`);
+      // Get book details from our backend Google Books API
+      const response = await api.get(`/api/googlebooks/googlebooks/${bookId}/`);
       const bookData = response.data;
-      
-      // Fetch additional details from Open Library
-      const olResponse = await fetch(`https://openlibrary.org/works/${bookId}.json`);
-      const olData = await olResponse.json();
       
       // Check subscription access
       const subscription = await subscriptionService.getCurrentSubscription();
@@ -69,14 +67,12 @@ class BookService {
         throw new Error('Upgrade your subscription to access premium books');
       }
       
-      // Merge Open Library data with our data, prioritizing our API's title
       return {
         ...bookData,
-        title: bookData.title || olData.title || 'Untitled',
-        description: olData.description?.value || olData.description || bookData.description,
-        subjects: olData.subjects || [],
-        covers: olData.covers?.map(id => `https://covers.openlibrary.org/b/id/${id}-L.jpg`) || [],
-        links: olData.links || []
+        title: bookData.title || 'Untitled',
+        description: bookData.description || '',
+        subjects: bookData.categories ? bookData.categories.split(', ') : [],
+        thumbnail_url: bookData.thumbnail_url || null
       };
     } catch (error) {
       console.error('Error fetching book details:', error);
@@ -86,17 +82,43 @@ class BookService {
 
   async searchBooksByCategory(category) {
     try {
-      const response = await fetch(`https://openlibrary.org/subjects/${encodeURIComponent(category.toLowerCase())}.json?limit=20`);
-      const data = await response.json();
-
-      // Transform the response to match our app's format
-      const transformedResults = data.works.map(book => ({
-        open_library_id: book.key.split('/').pop(),
+      // Format the query based on category type
+      let formattedQuery;
+      
+      // Map category IDs to appropriate Google Books API query formats
+      const categoryMappings = {
+        'fiction': 'subject:fiction',
+        'non-fiction': 'subject:nonfiction',
+        'mystery': 'subject:mystery+thriller',
+        'science': 'subject:science',
+        'history': 'subject:history',
+        'biography': 'subject:biography+autobiography',
+        'poetry': 'subject:poetry',
+        'drama': 'subject:drama',
+        'romance': 'subject:romance',
+        'technology': 'subject:technology',
+        'sci-fi': 'subject:science+fiction',
+        'science-fiction': 'subject:science+fiction',
+        'scifi': 'subject:science+fiction',
+        'fantasy': 'subject:fantasy'
+      };
+      
+      // Use the mapping if available, otherwise fall back to the default format
+      formattedQuery = categoryMappings[category.toLowerCase()] || `subject:${category}`;
+      
+      // Use Google Books API through our backend
+      const response = await api.get('/api/googlebooks/googlebooks/search/', {
+        params: { q: formattedQuery }
+      });
+      
+      // The response is already transformed by our backend
+      const transformedResults = response.data.map(book => ({
+        google_books_id: book.google_books_id,
         title: book.title,
-        authors: book.authors ? book.authors.map(author => author.name).join(', ') : 'Unknown Author',
-        thumbnail_url: book.cover_id ? `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg` : null,
-        first_publish_year: book.first_publish_year,
-        language: book.language ? book.language[0] : null
+        authors: book.authors,
+        thumbnail_url: book.thumbnail_url,
+        publication_date: book.publication_date,
+        language: book.language
       }));
 
       return transformedResults;
