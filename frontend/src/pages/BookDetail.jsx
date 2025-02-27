@@ -85,7 +85,7 @@ const BookDetail = () => {
         )}
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
-            {book.covers && book.covers[0] ? (
+            {book.thumbnail_url ? (
               <Box
                 component="img"
                 sx={{
@@ -96,7 +96,7 @@ const BookDetail = () => {
                   display: 'block'
                 }}
                 alt={book.title}
-                src={book.covers[0]}
+                src={book.thumbnail_url}
               />
             ) : (
               <Box

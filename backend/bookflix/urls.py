@@ -18,4 +18,5 @@ urlpatterns = [
     path('api/', include('accounts.urls')),
     path('api/books/', include('books.urls')),
     path('api/subscriptions/', include('subscriptions.urls')),
+    path('api/googlebooks/', include('googlebooks.urls')),
 ]

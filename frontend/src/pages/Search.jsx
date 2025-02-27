@@ -67,8 +67,8 @@ const Search = () => {
       ) : (
         <Grid container spacing={3} sx={{ mb: 0 }}>
           {searchResults.map((book) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={book.open_library_id}>
-              <Card component={Link} to={`/book/${book.open_library_id}`} sx={{ textDecoration: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={book.google_books_id}>
+              <Card component={Link} to={`/book/${book.google_books_id}`} sx={{ textDecoration: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardActionArea sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
                   <Box
                     sx={{

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'accounts',
     'books',
     'subscriptions',
+    'googlebooks',
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,16 @@ CORS_ALLOW_HEADERS = [
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
+
+# Google Books API settings
+GOOGLE_BOOKS_API_KEY = None  # Set this in your environment variables for security
+
+# Load environment variables
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
+
+# Get Google Books API key from environment variables
+GOOGLE_BOOKS_API_KEY = os.environ.get('GOOGLE_BOOKS_API_KEY')

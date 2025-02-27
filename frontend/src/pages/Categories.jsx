@@ -14,7 +14,10 @@ const categories = [
   { id: 'drama', name: 'Drama', image: '/categories/drama.png' },
   { id: 'romance', name: 'Romance', image: '/categories/romance.png' },
   { id: 'technology', name: 'Technology', image: '/categories/technology.png' },
+  { id: 'sci-fi', name: 'Science Fiction', image: '/categories/sci-fi.png' },
+  { id: 'fantasy', name: 'Fantasy', image: '/categories/fantasy.png' },
 ];
+
 
 const Categories = () => {
   const navigate = useNavigate();
