@@ -11,7 +11,7 @@ const subscriptionPlans = [
     features: [
       'Full access to all books',
       'Up to 10 books per month',
-      'Up to 5 downloads per month',
+      'Up to 1 download per month',
       'Perfect for casual readers'
     ],
     color: '#4caf50'
@@ -23,7 +23,7 @@ const subscriptionPlans = [
     features: [
       'Full access to all books',
       'Up to 20 books per month',
-      'Up to 10 downloads per month',
+      'Up to 3 downloads per month',
       'Great for regular readers'
     ],
     color: '#2196f3'
@@ -35,7 +35,7 @@ const subscriptionPlans = [
     features: [
       'Full access to all books',
       'Unlimited books per month',
-      'Unlimited downloads per month',
+      'Up to 5 downloads per month',
       'Ideal for avid readers'
     ],
     color: '#f44336'
