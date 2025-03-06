@@ -80,6 +80,31 @@ class BookService {
     }
   }
 
+  async downloadBook(bookId, format) {
+    try {
+      const response = await api.get(`/api/googlebooks/googlebooks/${bookId}/download/`, {
+        params: { format }
+      });
+      
+      if (response.data.preview_link) {
+        // If only preview link is available, open it in a new tab
+        window.open(response.data.preview_link, '_blank');
+        return { success: false, message: response.data.message };
+      }
+      
+      if (response.data[format]) {
+        // If download link is available, open it in a new tab
+        window.open(response.data[format], '_blank');
+        return { success: true };
+      }
+      
+      return { success: false, message: 'Download link not available' };
+    } catch (error) {
+      console.error('Error downloading book:', error);
+      throw error;
+    }
+  }
+
   async searchBooksByCategory(category) {
     try {
       // Format the query based on category type

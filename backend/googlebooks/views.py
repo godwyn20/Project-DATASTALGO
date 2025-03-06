@@ -291,6 +291,87 @@ class GoogleBookViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        try:
+            book = self.get_object()
+            format_type = request.query_params.get('format', 'pdf')
+            
+            # Validate format type
+            valid_formats = ['pdf', 'epub', 'mobi', 'txt']
+            if format_type not in valid_formats:
+                return Response(
+                    {'error': f'Invalid format. Supported formats: {", ".join(valid_formats)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get API key from settings
+            api_key = settings.GOOGLE_BOOKS_API_KEY
+            if not api_key:
+                logger.error('Google Books API key is not configured')
+                return Response(
+                    {'error': 'Google Books API key is not configured'}, 
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            # Check if the book is available for download
+            response = requests.get(
+                f'https://www.googleapis.com/books/v1/volumes/{book.google_books_id}',
+                params={'key': api_key},
+                timeout=10
+            )
+            
+            # Handle HTTP errors
+            response.raise_for_status()
+            data = response.json()
+            
+            # Check if download links are available
+            access_info = data.get('accessInfo', {})
+            download_links = {}
+            
+            # Check for PDF availability
+            if format_type == 'pdf' and access_info.get('pdf', {}).get('isAvailable'):
+                download_links['pdf'] = access_info.get('pdf', {}).get('acsTokenLink')
+            
+            # Check for EPUB availability
+            if format_type == 'epub' and access_info.get('epub', {}).get('isAvailable'):
+                download_links['epub'] = access_info.get('epub', {}).get('acsTokenLink')
+            
+            # If no direct download links are available, use the preview link
+            if not download_links:
+                preview_link = data.get('volumeInfo', {}).get('previewLink')
+                if preview_link:
+                    return Response({
+                        'message': f'Direct download not available for this book in {format_type} format.',
+                        'preview_link': preview_link
+                    })
+                else:
+                    return Response(
+                        {'error': f'This book is not available for download in {format_type} format.'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+            
+            return Response(download_links)
+            
+        except requests.exceptions.Timeout:
+            logger.error('Request to Google Books API timed out')
+            return Response(
+                {'error': 'Request to Google Books API timed out'}, 
+                status=status.HTTP_504_GATEWAY_TIMEOUT
+            )
+        except requests.exceptions.HTTPError as http_err:
+            logger.error(f'HTTP error occurred: {http_err}')
+            return Response(
+                {'error': 'Failed to fetch download information from Google Books API'}, 
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+        except Exception as e:
+            logger.error(f'Unexpected error in download: {str(e)}')
+            return Response(
+                {'error': 'An unexpected error occurred while processing your download request'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
     @action(detail=True, methods=['post'])
     def favorite(self, request, pk=None):
         book = self.get_object()
