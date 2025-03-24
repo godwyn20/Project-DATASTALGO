@@ -77,3 +77,34 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         subscription.payment_status = 'completed'
         subscription.save()
         return Response({'status': 'payment processed'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def upgrade(self, request):
+        try:
+            plan_id = request.data.get('tier')
+            if not plan_id:
+                return Response({'error': 'Tier is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                plan = SubscriptionPlan.objects.get(id=plan_id)
+            except SubscriptionPlan.DoesNotExist:
+                return Response({'error': 'Invalid subscription plan'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get or create subscription for the user
+            subscription, created = Subscription.objects.get_or_create(
+                user=request.user,
+                defaults={'plan': plan}
+            )
+
+            if not created:
+                subscription.plan = plan
+                subscription.save()
+
+            serializer = self.get_serializer(subscription)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error upgrading subscription: {str(e)}")
+            return Response(
+                {'error': 'Failed to upgrade subscription'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -75,6 +75,10 @@ const authService = {
   },
 
   setupAxiosInterceptors: () => {
+    // Clear any existing interceptors to prevent duplicates
+    axiosInstance.interceptors.request.eject(axiosInstance.interceptors.request.handlers[0]);
+    axiosInstance.interceptors.response.eject(axiosInstance.interceptors.response.handlers[0]);
+    
     axiosInstance.interceptors.request.use(
       (config) => {
         const token = authService.getToken();

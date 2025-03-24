@@ -1,6 +1,6 @@
-import axios from 'axios';
+import authService from './authService';
+import { axiosInstance } from './authService';
 
-const BASE_URL = 'http://localhost:8000/api';
 
 // Get the auth token from localStorage
 const getAuthHeader = () => {
@@ -17,6 +17,7 @@ export const SubscriptionTiers = {
 export const SubscriptionFeatures = {
   [SubscriptionTiers.QUICK_READ]: {
     canDownloadBooks: true,
+    canAccessPremiumBooks: false,
     maxBooksPerMonth: 10,
     maxDownloads: 1,
     description: 'Perfect for casual readers',
@@ -24,6 +25,7 @@ export const SubscriptionFeatures = {
   },
   [SubscriptionTiers.EXPLORER]: {
     canDownloadBooks: true,
+    canAccessPremiumBooks: false,
     maxBooksPerMonth: 20,
     maxDownloads: 3,
     description: 'Great for regular readers',
@@ -31,8 +33,9 @@ export const SubscriptionFeatures = {
   },
   [SubscriptionTiers.BOOKWORM]: {
     canDownloadBooks: true,
+    canAccessPremiumBooks: true,
     maxBooksPerMonth: -1, // unlimited
-    maxDownloads: 5, // changed from unlimited
+    maxDownloads: -1, // unlimited
     description: 'Ideal for avid readers',
     price: 99
   }
@@ -40,37 +43,45 @@ export const SubscriptionFeatures = {
 
 const subscriptionService = {
   getCurrentSubscription: async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!authService.isAuthenticated()) {
       console.log('No authentication token found');
       return { tier: null, error: 'unauthorized' };
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}/subscriptions/current/`, {
-        headers: getAuthHeader()
-      });
+      // Make sure we're using the correct endpoint path
+      const response = await axiosInstance.get('/subscriptions/current/');
       return response.data;
     } catch (error) {
       console.error('Error fetching subscription:', error);
       if (error.response?.status === 401) {
         return { tier: null, error: 'unauthorized' };
       }
+      // Handle 404 as an expected case when no subscription exists
+      if (error.response?.status === 404) {
+        return { tier: null, error: 'no_subscription' };
+      }
       return { tier: null, error: 'fetch_failed' };
     }
   },
 
   upgradeSubscription: async (newTier) => {
+    if (!authService.isAuthenticated()) {
+      throw new Error('Please log in to upgrade your subscription');
+    }
+
     try {
-      const response = await axios.post(
-        `${BASE_URL}/subscriptions/upgrade/`,
-        { tier: newTier },
-        { headers: getAuthHeader() }
+      const response = await axiosInstance.post(
+        '/api/subscriptions/upgrade/',
+        { tier: newTier }
       );
       return response.data;
     } catch (error) {
       console.error('Error upgrading subscription:', error);
-      throw error;
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.message || 
+                          'Failed to upgrade subscription. Please try again.';
+      throw new Error(errorMessage);
     }
   },
 

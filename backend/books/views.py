@@ -9,7 +9,7 @@ from .serializers import BookSerializer, UserFavoriteSerializer, ReadingHistoryS
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     @action(detail=False, methods=['get'])
     def trending(self, request):
@@ -152,7 +152,7 @@ class BookViewSet(viewsets.ModelViewSet):
 class UserFavoriteViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = UserFavorite.objects.all()
     serializer_class = UserFavoriteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return UserFavorite.objects.filter(user=self.request.user)
@@ -160,7 +160,7 @@ class UserFavoriteViewSet(viewsets.ReadOnlyModelViewSet):
 class ReadingHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ReadingHistory.objects.all()
     serializer_class = ReadingHistorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return ReadingHistory.objects.filter(user=self.request.user)
