@@ -45,12 +45,19 @@ const BookDetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bookData, subscriptionData] = await Promise.all([
-          BookService.getBookDetails(id),
-          subscriptionService.getCurrentSubscription()
-        ]);
+        // Fetch book data first
+        const bookData = await BookService.getBookDetails(id);
         setBook(bookData);
-        setSubscription(subscriptionData);
+        
+        // Then try to fetch subscription data
+        try {
+          const subscriptionData = await subscriptionService.getCurrentSubscription();
+          setSubscription(subscriptionData);
+        } catch (subErr) {
+          console.log('Subscription data not available:', subErr);
+          // Set default subscription state instead of failing the whole component
+          setSubscription({ tier: null, error: 'fetch_failed' });
+        }
       } catch (err) {
         setError(err.message || 'Failed to fetch book details');
       } finally {
@@ -100,7 +107,7 @@ const BookDetail = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4, minHeight: '100vh' }}>
       <Paper elevation={3} sx={{ p: { xs: 2, md: 3 }, height: '100%', borderRadius: 0 }}>
-        {book.isPremium && subscription?.tier !== SubscriptionTiers.PREMIUM && (
+        {book.isPremium && (!subscription || subscription?.tier !== SubscriptionTiers.BOOKWORM) && (
           <Alert severity="warning" sx={{ mb: 3 }}>
             This is a premium book. Upgrade your subscription to access premium content.
             <Button

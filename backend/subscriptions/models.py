@@ -19,7 +19,7 @@ class SubscriptionTier(models.Model):
         return self.get_name_display()
 
 class UserSubscription(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='current_subscription')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_subscriptions')
     tier = models.ForeignKey(SubscriptionTier, on_delete=models.PROTECT)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField()

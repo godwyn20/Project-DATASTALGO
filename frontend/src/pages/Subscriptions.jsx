@@ -35,7 +35,8 @@ const subscriptionPlans = [
     features: [
       'Full access to all books',
       'Unlimited books per month',
-      'Up to 5 downloads per month',
+      'Unlimited downloads',
+      'Access to premium books',
       'Ideal for avid readers'
     ],
     color: '#f44336'
@@ -50,7 +51,18 @@ const Subscriptions = () => {
     const fetchCurrentSubscription = async () => {
       try {
         const subscription = await subscriptionService.getCurrentSubscription();
-        setCurrentTier(subscription.tier);
+        if (subscription.error) {
+          setMessage({
+            open: true,
+            text: subscription.error === 'unauthorized' 
+              ? 'Please log in to view your subscription' 
+              : 'No active subscription found. Please select a plan below.',
+            severity: 'info'
+          });
+          setCurrentTier(null);
+        } else {
+          setCurrentTier(subscription.tier);
+        }
       } catch (error) {
         console.error('Error fetching subscription:', error);
         setMessage({
@@ -58,6 +70,7 @@ const Subscriptions = () => {
           text: 'Failed to fetch current subscription',
           severity: 'error'
         });
+        setCurrentTier(null);
       }
     };
     fetchCurrentSubscription();
@@ -74,7 +87,7 @@ const Subscriptions = () => {
         return;
       }
 
-      await subscriptionService.upgradeSubscription(planId);
+      const response = await subscriptionService.upgradeSubscription(planId);
       setCurrentTier(planId);
       setMessage({
         open: true,
@@ -85,7 +98,7 @@ const Subscriptions = () => {
       console.error('Error upgrading subscription:', error);
       setMessage({
         open: true,
-        text: 'Failed to upgrade subscription',
+        text: error.message || 'Failed to upgrade subscription. Please try again.',
         severity: 'error'
       });
     }
