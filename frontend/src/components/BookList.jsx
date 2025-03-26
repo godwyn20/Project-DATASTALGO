@@ -14,7 +14,7 @@ const BookList = ({ books, onFavoriteToggle }) => {
   return (
     <Grid container spacing={3} sx={{ p: 2 }}>
       {books.map((book) => (
-        <Grid item xs={12} sm={6} md={4} lg={3} key={book.id || book.key}>
+        <Grid item xs={12} sm={6} md={4} lg={3} key={book.google_books_id}>
           <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <CardMedia
               component="img"
@@ -23,7 +23,7 @@ const BookList = ({ books, onFavoriteToggle }) => {
                 objectFit: 'contain',
                 bgcolor: 'grey.100'
               }}
-              image={book.thumbnail_url || `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg`}
+              image={book.cover_id ? `https://books.google.com/books/content/images/frontcover/${book.google_books_id}?fife=w400-h600` : null}
               alt={book.title}
             />
             <CardContent sx={{ flexGrow: 1 }}>

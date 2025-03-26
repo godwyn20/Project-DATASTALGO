@@ -13,19 +13,20 @@ logger = logging.getLogger(__name__)
 class GoogleBookViewSet(viewsets.ModelViewSet):
     queryset = GoogleBook.objects.all()
     serializer_class = GoogleBookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    lookup_field = 'google_books_id'
     
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, google_books_id=None):
         # Check if the pk is a google_books_id
         try:
             # First try to find by google_books_id
-            book = get_object_or_404(GoogleBook, google_books_id=pk)
+            book = get_object_or_404(GoogleBook, google_books_id=google_books_id)
             serializer = self.get_serializer(book, context={'request': request})
             return Response(serializer.data)
         except:
             # If not found in database, try to fetch from Google Books API
             try:
-                logger.info(f'Fetching book details from Google Books API for ID: {pk}')
+                logger.info(f'Fetching book details from Google Books API for ID: {google_books_id}')
                 
                 # Get API key from settings
                 api_key = settings.GOOGLE_BOOKS_API_KEY
@@ -38,7 +39,7 @@ class GoogleBookViewSet(viewsets.ModelViewSet):
                 
                 # Make request to Google Books API for specific volume
                 response = requests.get(
-                    f'https://www.googleapis.com/books/v1/volumes/{pk}',
+                    f'https://www.googleapis.com/books/v1/volumes/{google_books_id}',
                     params={'key': api_key},
                     timeout=10
                 )
@@ -93,7 +94,7 @@ class GoogleBookViewSet(viewsets.ModelViewSet):
                     categories = ', '.join(volume_info.get('categories'))
                 
                 book_data = {
-                    'google_books_id': pk,
+                    'google_books_id': google_books_id,
                     'title': volume_info.get('title', '').strip(),
                     'authors': ', '.join(volume_info.get('authors', ['Unknown Author'])),
                     'description': volume_info.get('description', ''),
@@ -143,13 +144,20 @@ class GoogleBookViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 logger.error(f'Unexpected error in retrieve: {str(e)}')
                 # If all else fails, try the default behavior (lookup by database ID)
-                return super().retrieve(request, pk)
+                return Response({'error': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def search(self, request):
+        category = request.query_params.get('category')
         query = request.query_params.get('q', '')
-        if not query:
-            return Response({'error': 'Query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not query and not category:
+            return Response({'error': 'Query or category parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Build search query
+        search_query = query
+        if category:
+            search_query = f'subject:{category}' + (f' {query}' if query else '')
 
         try:
             logger.info(f'Searching Google Books for query: {query}')
@@ -167,12 +175,13 @@ class GoogleBookViewSet(viewsets.ModelViewSet):
             response = requests.get(
                 f'https://www.googleapis.com/books/v1/volumes',
                 params={
-                    'q': query,
+                    'q': search_query,
                     'key': api_key,
                     'maxResults': 40
                 },
                 timeout=10  # Add timeout to prevent hanging
             )
+            logger.info(f'Final API URL: {response.request.url}')
             
             # Handle HTTP errors
             response.raise_for_status()

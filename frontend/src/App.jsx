@@ -55,7 +55,7 @@ function App() {
           <Router>
             <div className="flex flex-col">
               <Navigation />
-              <main className="flex-1 pt-16">
+              <main className="flex-1 pt-16 mt-4">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/browse" element={<Browse />} />

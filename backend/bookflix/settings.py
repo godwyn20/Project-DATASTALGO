@@ -1,12 +1,18 @@
 """Django settings for bookflix project."""
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-j^*4or=-r-@3wqd1@nxnv111-erl+za3%q+tt0gg!n-fv-sw=f'
+SECRET_KEY = os.environ.get('SECRET_KEY')
+GOOGLE_BOOKS_API_KEY = os.environ.get('GOOGLE_BOOKS_API_KEY')
 
 DEBUG = True
 
@@ -139,7 +145,11 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists
-load_dotenv()
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+# PayPal settings
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET')
 
 # Get Google Books API key from environment variables
 GOOGLE_BOOKS_API_KEY = os.environ.get('GOOGLE_BOOKS_API_KEY')

@@ -1,15 +1,85 @@
 from rest_framework import viewsets, permissions, status
+from rest_framework.views import APIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import SubscriptionTier, UserSubscription
 from .serializers import SubscriptionTierSerializer, UserSubscriptionSerializer
 from django.utils import timezone
 from django.conf import settings
+import paypalrestsdk
+
+paypalrestsdk.configure({
+  "mode": "sandbox",
+  "client_id": settings.PAYPAL_CLIENT_ID,
+  "client_secret": settings.PAYPAL_SECRET
+})
 
 class SubscriptionTierViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SubscriptionTier.objects.all()
     serializer_class = SubscriptionTierSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+class PaymentAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        tier_id = request.data.get('tier_id')
+
+        try:
+            tier = SubscriptionTier.objects.get(id=tier_id)
+            
+            if not tier.payment_required:
+                UserSubscription.objects.create(
+                    user=user,
+                    tier=tier,
+                    is_active=True
+                )
+                return Response({'status': 'activated'})
+
+            payment = paypalrestsdk.Payment({
+                "intent": "sale",
+                "payer": {"payment_method": "paypal"},
+                "transactions": [{
+                    "amount": {
+                        "total": str(tier.price_usd),
+                        "currency": "USD"
+                    },
+                    "description": f"{tier.name} Subscription"
+                }],
+                "redirect_urls": {
+                    "return_url": "http://localhost:8000/payment/success",
+                    "cancel_url": "http://localhost:8000/payment/cancel"
+                }
+            })
+
+            if payment.create():
+                return Response({'approval_url': next(link.href for link in payment.links if link.rel == 'approval_url'), 'payment_id': payment.id})
+            return Response({'error': 'Payment creation failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except SubscriptionTier.DoesNotExist:
+            return Response({'error': 'Invalid tier ID'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        payment_id = request.query_params.get('paymentId')
+        payer_id = request.query_params.get('PayerID')
+        
+        try:
+            payment = paypalrestsdk.Payment.find(payment_id)
+            
+            if payment.execute({'payer_id': payer_id}):
+                tier_id = payment.transactions[0].description.split()[0]
+                tier = SubscriptionTier.objects.get(id=tier_id)
+                UserSubscription.objects.create(
+                    user=request.user,
+                    tier=tier,
+                    is_active=True
+                )
+                return Response({'status': 'payment_completed'})
+            return Response({'error': 'Payment execution failed'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserSubscriptionViewSet(viewsets.ModelViewSet):
     serializer_class = UserSubscriptionSerializer

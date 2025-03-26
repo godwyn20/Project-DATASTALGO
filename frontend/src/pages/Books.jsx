@@ -61,11 +61,11 @@ const Books = () => {
         </Typography>
         <Grid container spacing={3}>
           {categories.trending.map((book) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={book.open_library_id}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={book.google_books_id}>
               <BookCard 
                 title={book.title}
                 author={book.authors}
-                cover={book.cover_id ? `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg` : null}
+                cover={book.cover_id ? `https://books.google.com/books/content/images/frontcover/${book.google_books_id}?fife=w400-h600` : null}
                 description={book.description || 'No description available'}
               />
             </Grid>
@@ -80,11 +80,11 @@ const Books = () => {
         </Typography>
         <Grid container spacing={3}>
           {categories.newReleases.map((book) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={book.open_library_id}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={book.google_books_id}>
               <BookCard 
                 title={book.title}
                 author={book.authors}
-                cover={book.cover_id ? `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg` : null}
+                cover={book.cover_id ? `https://books.google.com/books/content/images/frontcover/${book.google_books_id}?fife=w400-h600` : null}
                 description={book.description || 'No description available'}
               />
             </Grid>
@@ -99,11 +99,11 @@ const Books = () => {
         </Typography>
         <Grid container spacing={3}>
           {categories.recommended.map((book) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={book.open_library_id}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={book.google_books_id}>
               <BookCard 
                 title={book.title}
                 author={book.authors}
-                cover={book.cover_id ? `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg` : null}
+                cover={book.cover_id ? `https://books.google.com/books/content/images/frontcover/${book.google_books_id}?fife=w400-h600` : null}
                 description={book.description || 'No description available'}
               />
             </Grid>
