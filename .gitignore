@@ -1,0 +1,29 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+
+# Local settings
+.env
+
+# Database
+*.sqlite3
+
+# Virtual environment
+venv/
+
+# IDE files
+.idea/
+.vscode/
+
+# Node dependencies
+node_modules/
+
+# Build files
+/dist/
+/staticfiles/
+
+# Testing
+.coverage
+htmlcov/

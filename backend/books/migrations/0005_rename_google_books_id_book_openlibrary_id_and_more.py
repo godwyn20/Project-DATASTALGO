@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.RenameField(
             model_name='book',
             old_name='google_books_id',
-            new_name='openlibrary_id',
+            new_name='google_books_id',
         ),
         migrations.RemoveField(
             model_name='book',

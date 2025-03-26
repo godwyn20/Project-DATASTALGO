@@ -5,46 +5,36 @@ import subscriptionService, { SubscriptionTiers, SubscriptionFeatures } from '..
 
 const subscriptionPlans = [
   {
-    id: SubscriptionTiers.QUICK_READ,
-    title: 'Quick Read',
-    price: '20',
+    id: SubscriptionTiers.FREE,
+    title: 'Free',
+    price: '0',
+    price_usd: '0.00',
     features: [
-      'Full access to all books',
-      'Up to 10 books per month',
-      'Up to 1 download per month',
-      'Perfect for casual readers'
+      'Lifetime free access',
+      '10 book reading limit',
+      '1 download per book',
+      'Ideal for casual readers'
     ],
     color: '#4caf50'
   },
   {
-    id: SubscriptionTiers.EXPLORER,
-    title: 'Explorer',
-    price: '49',
-    features: [
-      'Full access to all books',
-      'Up to 20 books per month',
-      'Up to 3 downloads per month',
-      'Great for regular readers'
-    ],
-    color: '#2196f3'
-  },
-  {
     id: SubscriptionTiers.BOOKWORM,
-    title: 'Bookworm',
-    price: '99',
+    title: 'Premium',
+    price: '999',
+    price_usd: '19.99',
     features: [
-      'Full access to all books',
-      'Unlimited books per month',
+      'One-time payment',
+      'Lifetime premium access',
       'Unlimited downloads',
-      'Access to premium books',
-      'Ideal for avid readers'
+      'Exclusive content',
+      'VIP priority support'
     ],
     color: '#f44336'
   }
 ];
 
 const Subscriptions = () => {
-  const [currentTier, setCurrentTier] = useState(SubscriptionTiers.QUICK_READ);
+  const [currentTier, setCurrentTier] = useState(SubscriptionTiers.FREE);
   const [message, setMessage] = useState({ open: false, text: '', severity: 'success' });
 
   useEffect(() => {
@@ -140,7 +130,7 @@ const Subscriptions = () => {
                     ₱{plan.price}
                   </Typography>
                   <Typography variant="subtitle1" color="text.secondary">
-                    per month
+                    (${plan.price_usd} USD) {plan.id === SubscriptionTiers.BOOKWORM ? 'one-time payment' : 'Lifetime access'}
                   </Typography>
                 </Box>
                 <List>

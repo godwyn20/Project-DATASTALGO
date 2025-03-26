@@ -43,8 +43,9 @@ const booksService = {
 
   getBookDetails: async (id) => {
     try {
-      const response = await axios.get(`${API_URL}/${id}/`, {
-        headers: getAuthHeader()
+      // Use the Google Books API endpoint instead of books endpoint
+      const response = await api.get(`/api/googlebooks/${id}/`, {
+        // Use the api instance that already has auth headers configured
       });
       return response.data;
     } catch (error) {

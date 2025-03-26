@@ -9,35 +9,28 @@ const getAuthHeader = () => {
 };
 
 export const SubscriptionTiers = {
-  QUICK_READ: 'QUICK_READ',  // PHP 20
-  EXPLORER: 'EXPLORER',      // PHP 49
+  FREE: 'FREE',            // PHP 0
   BOOKWORM: 'BOOKWORM'      // PHP 99
 };
 
 export const SubscriptionFeatures = {
-  [SubscriptionTiers.QUICK_READ]: {
+  [SubscriptionTiers.FREE]: {
     canDownloadBooks: true,
     canAccessPremiumBooks: false,
-    maxBooksPerMonth: 10,
+    bookLimit: 10, // Lifetime access limit
     maxDownloads: 1,
-    description: 'Perfect for casual readers',
-    price: 20
-  },
-  [SubscriptionTiers.EXPLORER]: {
-    canDownloadBooks: true,
-    canAccessPremiumBooks: false,
-    maxBooksPerMonth: 20,
-    maxDownloads: 3,
-    description: 'Great for regular readers',
-    price: 49
+    description: 'Free default subscription',
+    price: 0,
+    price_usd: 0.00
   },
   [SubscriptionTiers.BOOKWORM]: {
     canDownloadBooks: true,
     canAccessPremiumBooks: true,
-    maxBooksPerMonth: -1, // unlimited
+    bookLimit: -1, // Unlimited lifetime access
     maxDownloads: -1, // unlimited
     description: 'Ideal for avid readers',
-    price: 99
+    price: 99,
+    price_usd: 1.98
   }
 };
 

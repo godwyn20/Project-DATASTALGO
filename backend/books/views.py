@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from django.conf import settings
 from .models import Book, UserFavorite, ReadingHistory
 from .serializers import BookSerializer, UserFavoriteSerializer, ReadingHistorySerializer
+from googlebooks.models import GoogleBook
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
@@ -43,47 +44,53 @@ class BookViewSet(viewsets.ModelViewSet):
             import logging
             logger = logging.getLogger(__name__)
             
-            logger.info(f'Searching OpenLibrary for query: {query}')
+            logger.info(f'Searching Google Books for query: {query}')
             response = requests.get(
-                f'https://openlibrary.org/search.json?q={query}&limit=40',
+                f'https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=40&key={settings.GOOGLE_BOOKS_API_KEY}',
                 timeout=10  # Add timeout to prevent hanging
             )
             
-            # Handle HTTP errors from OpenLibrary
+            # Handle HTTP errors from Google Books
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as http_err:
                 logger.error(f'HTTP error occurred: {http_err}')
-                return Response({'error': 'Failed to fetch data from OpenLibrary'}, 
+                return Response({'error': 'Failed to fetch data from Google Books'}, 
                                status=status.HTTP_503_SERVICE_UNAVAILABLE)
             
             try:
                 data = response.json()
             except ValueError as json_err:
                 logger.error(f'Invalid JSON response: {json_err}')
-                return Response({'error': 'Invalid response from OpenLibrary'}, 
+                return Response({'error': 'Invalid response from Google Books'}, 
                                status=status.HTTP_502_BAD_GATEWAY)
             
-            if not data.get('docs'):
+            if not data.get('items'):
                 logger.warning(f'No results found for query: {query}')
                 return Response([])
                 
-            logger.info(f'Found {len(data.get("docs", []))} results for query: {query}')
+            logger.info(f'Found {len(data.get("items", []))} results for query: {query}')
             
             books_data = []
-            for item in data.get('docs', []):
+            for item in data.get('items', []):
                 try:
                     # Skip items without a key or title
                     if not item.get('key') or not item.get('title'):
                         continue
 
+                    # First get the open_library_id to use it in the thumbnail URL
+                    open_library_id = item.get('key', '').split('/')[-1]  # Get the last part of the key
+                    
+                    # Get volume info from the item
+                    volume_info = item.get('volumeInfo', {})
+                    
                     book_data = {
-                        'open_library_id': item.get('key', '').split('/')[-1],  # Get the last part of the key
-                        'title': item.get('title', '').strip(),
-                        'authors': ', '.join(item.get('author_name', ['Unknown Author'])),
-                        'description': item.get('first_sentence', [''])[0] if item.get('first_sentence') else '',
-                        'thumbnail_url': f'https://covers.openlibrary.org/b/id/{item.get("cover_i", 0)}-L.jpg' if item.get('cover_i') else None,
-                        'preview_link': f'https://openlibrary.org{item.get("key")}'
+                        'open_library_id': open_library_id,
+                        'title': volume_info.get('title', '').strip(),
+                        'authors': ', '.join(volume_info.get('authors', ['Unknown Author'])),
+                        'description': volume_info.get('description', ''),
+                        'thumbnail_url': f'https://books.google.com/books/content/images/frontcover/{open_library_id}?fife=w400-h600' if open_library_id else None,
+                        'preview_link': volume_info.get('previewLink', '')
                     }
                     
                     if not book_data['open_library_id']:
@@ -103,21 +110,22 @@ class BookViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
             
         except requests.exceptions.Timeout:
-            logger.error('Request to OpenLibrary timed out')
+            logger.error('Request to Google Books API timed out')
             return Response(
-                {'error': 'Request to OpenLibrary timed out'}, 
+                {'error': 'Request to Google Books API timed out'}, 
                 status=status.HTTP_504_GATEWAY_TIMEOUT
             )
         except requests.exceptions.ConnectionError as conn_err:
             logger.error(f'Connection error: {conn_err}')
             return Response(
-                {'error': 'Could not connect to OpenLibrary'}, 
+                {'error': 'Could not connect to Google Books API'}, 
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         except Exception as e:
-            logger.error(f'Unexpected error in search: {str(e)}')
+            import traceback
+            logger.error(f'Unexpected error in search: {str(e)}\n{traceback.format_exc()}')
             return Response(
-                {'error': 'An unexpected error occurred'}, 
+                {'error': 'An unexpected error occurred', 'message': str(e) if settings.DEBUG else None}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

@@ -3,24 +3,24 @@ import subscriptionService, { SubscriptionTiers, SubscriptionFeatures } from './
 
 class BookService {
   async getTrendingBooks() {
-    const response = await axiosInstance.get('/api/books/trending/');
+    const response = await axiosInstance.get('/books/trending/');
     return response.data;
   }
 
   async getNewReleases() {
-    const response = await axiosInstance.get('/api/books/new-releases/');
+    const response = await axiosInstance.get('/books/new-releases/');
     return response.data;
   }
 
   async getRecommendedBooks() {
-    const response = await axiosInstance.get('/api/books/recommended/');
+    const response = await axiosInstance.get('/books/recommended/');
     return response.data;
   }
 
   async searchBooks(query) {
     try {
       // Use Google Books API through our backend
-      const response = await axiosInstance.get('/api/googlebooks/googlebooks/search/', {
+      const response = await axiosInstance.get('/googlebooks/search/', {
         params: { q: query }
       });
       
@@ -42,12 +42,12 @@ class BookService {
   }
 
   async toggleFavorite(bookId) {
-    const response = await axiosInstance.post(`/api/books/${bookId}/favorite/`);
+    const response = await axiosInstance.post(`/books/${bookId}/favorite/`);
     return response.data;
   }
 
   async updateReadingProgress(bookId, progress) {
-    const response = await axiosInstance.post(`/api/books/${bookId}/update_progress/`, {
+    const response = await axiosInstance.post(`/books/${bookId}/update_progress/`, {
       progress
     });
     return response.data;
@@ -56,7 +56,7 @@ class BookService {
   async getBookDetails(bookId) {
     try {
       // Get book details from our backend Google Books API
-      const response = await axiosInstance.get(`/api/googlebooks/googlebooks/${bookId}/`);
+      const response = await axiosInstance.get(`/googlebooks/${bookId}/`);
       const bookData = response.data;
       
       // Check subscription access
@@ -82,7 +82,7 @@ class BookService {
 
   async downloadBook(bookId, format) {
     try {
-      const response = await axiosInstance.get(`/api/googlebooks/googlebooks/${bookId}/download/`, {
+      const response = await axiosInstance.get(`/googlebooks/${bookId}/download/`, {
         params: { format }
       });
       
@@ -132,7 +132,7 @@ class BookService {
       formattedQuery = categoryMappings[category.toLowerCase()] || `subject:${category}`;
       
       // Use Google Books API through our backend
-      const response = await axiosInstance.get('/api/googlebooks/googlebooks/search/', {
+      const response = await axiosInstance.get('/googlebooks/search/', {
         params: { q: formattedQuery }
       });
       

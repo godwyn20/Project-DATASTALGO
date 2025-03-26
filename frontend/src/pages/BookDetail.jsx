@@ -105,11 +105,11 @@ const BookDetail = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4, minHeight: '100vh' }}>
+    <Container maxWidth="lg" sx={{ py: 4, mt: 8, minHeight: '100vh' }}>
       <Paper elevation={3} sx={{ p: { xs: 2, md: 3 }, height: '100%', borderRadius: 0 }}>
         {book.isPremium && (!subscription || subscription?.tier !== SubscriptionTiers.BOOKWORM) && (
           <Alert severity="warning" sx={{ mb: 3 }}>
-            This is a premium book. Upgrade your subscription to access premium content.
+            This is a premium book. Upgrade to Premium for one-time access to all content.
             <Button
               variant="outlined"
               size="small"

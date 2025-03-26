@@ -83,7 +83,7 @@ const Search = () => {
                       <CardMedia
                         component="img"
                         height="300"
-                        image={book.thumbnail_url}
+                        image={book.cover_id ? `https://books.google.com/books/content/images/frontcover/${book.google_books_id}?fife=w400-h600` : null}
                         alt={book.title}
                       />
                     ) : (

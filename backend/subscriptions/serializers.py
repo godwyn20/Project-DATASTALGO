@@ -4,7 +4,7 @@ from .models import SubscriptionTier, UserSubscription
 class SubscriptionTierSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionTier
-        fields = ['id', 'name', 'price', 'max_books_per_month', 'max_downloads', 'description']
+        fields = ['id', 'name', 'price', 'price_usd', 'currency', 'duration', 'payment_required', 'book_limit', 'max_downloads', 'description']
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
     tier_details = SubscriptionTierSerializer(source='tier', read_only=True)
