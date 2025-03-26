@@ -3,8 +3,9 @@ from rest_framework.routers import DefaultRouter
 from .views import GoogleBookViewSet
 
 router = DefaultRouter()
-router.register(r'googlebooks', GoogleBookViewSet)
+router.register(r'', GoogleBookViewSet)
 
 urlpatterns = [
+    path('search/', GoogleBookViewSet.as_view({'get': 'search'}), name='googlebook-search'),
     path('', include(router.urls)),
 ]
