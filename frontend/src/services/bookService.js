@@ -55,6 +55,7 @@ class BookService {
 
   async getBookDetails(bookId) {
     try {
+
       // Get book details from our backend Google Books API
       const response = await axiosInstance.get(`/googlebooks/${bookId}/`);
       const bookData = response.data;
@@ -101,6 +102,16 @@ class BookService {
       return { success: false, message: 'Download link not available' };
     } catch (error) {
       console.error('Error downloading book:', error);
+      throw error;
+    }
+  }
+
+  async getSavedBooks() {
+    try {
+      const response = await axiosInstance.get('/books/saved/');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching saved books:', error);
       throw error;
     }
   }

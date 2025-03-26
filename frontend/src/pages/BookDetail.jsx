@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Grid, Paper, Button, Chip, Stack, Alert, Menu, MenuItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Container, Typography, Grid, Paper, Button, Chip, Stack, Alert } from '@mui/material';
 import BookService from '../services/bookService';
 import subscriptionService, { SubscriptionTiers } from '../services/subscriptionService';
-import DownloadIcon from '@mui/icons-material/Download';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import DescriptionIcon from '@mui/icons-material/Description';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 const BookDetail = () => {
   const { id } = useParams();
@@ -15,30 +13,14 @@ const BookDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subscription, setSubscription] = useState(null);
-  const [downloadAnchorEl, setDownloadAnchorEl] = useState(null);
-  const [downloadStatus, setDownloadStatus] = useState(null);
-  
-  const handleDownloadClick = (event) => {
-    setDownloadAnchorEl(event.currentTarget);
-  };
+  const [isFavorite, setIsFavorite] = useState(false);
 
-  const handleDownloadClose = () => {
-    setDownloadAnchorEl(null);
-  };
-
-  const handleDownloadFormat = async (format) => {
+  const handleFavoriteClick = async () => {
     try {
-      setDownloadStatus({ loading: true, error: null });
-      const result = await BookService.downloadBook(id, format);
-      if (!result.success && result.message) {
-        setDownloadStatus({ loading: false, error: null, message: result.message });
-      } else {
-        setDownloadStatus({ loading: false, error: null, success: true });
-      }
+      await BookService.toggleFavorite(id);
+      setIsFavorite(!isFavorite);
     } catch (err) {
-      setDownloadStatus({ loading: false, error: err.message || 'Failed to download book' });
-    } finally {
-      handleDownloadClose();
+      console.error('Error toggling favorite:', err);
     }
   };
 
@@ -171,36 +153,12 @@ const BookDetail = () => {
               <Button
                 variant="contained"
                 color="primary"
-                startIcon={<DownloadIcon />}
-                onClick={handleDownloadClick}
+                startIcon={isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                onClick={handleFavoriteClick}
                 sx={{ mt: 2 }}
               >
-                Download
+                {isFavorite ? 'Saved' : 'Save to Profile'}
               </Button>
-              <Menu
-                anchorEl={downloadAnchorEl}
-                open={Boolean(downloadAnchorEl)}
-                onClose={handleDownloadClose}
-              >
-                <MenuItem onClick={() => handleDownloadFormat('pdf')}>
-                  <ListItemIcon>
-                    <PictureAsPdfIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>PDF</ListItemText>
-                </MenuItem>
-                <MenuItem onClick={() => handleDownloadFormat('epub')}>
-                  <ListItemIcon>
-                    <MenuBookIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>EPUB</ListItemText>
-                </MenuItem>
-                <MenuItem onClick={() => handleDownloadFormat('txt')}>
-                  <ListItemIcon>
-                    <DescriptionIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>TXT</ListItemText>
-                </MenuItem>
-              </Menu>
             </Box>
             {book.authors && (
               <Typography 

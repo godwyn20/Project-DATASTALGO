@@ -11,6 +11,14 @@ class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.AllowAny]
+    
+    @action(detail=False, methods=['get'])
+    def saved(self, request):
+        # Get user's favorite books
+        favorites = UserFavorite.objects.filter(user=request.user).select_related('book')
+        books = [favorite.book for favorite in favorites]
+        serializer = self.get_serializer(books, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
     def trending(self, request):
@@ -172,3 +180,11 @@ class ReadingHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return ReadingHistory.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def saved(self, request):
+        # Get user's favorite books
+        favorites = UserFavorite.objects.filter(user=request.user).select_related('book')
+        books = [favorite.book for favorite in favorites]
+        serializer = self.get_serializer(books, many=True)
+        return Response(serializer.data)
