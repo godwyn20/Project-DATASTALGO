@@ -17,7 +17,6 @@ import {
   AccountCircle,
   Home,
   Category,
-  Collections,
   PriceChange,
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
@@ -123,14 +122,6 @@ const Navigation = () => {
             startIcon={<Category />}
           >
             Categories
-          </Button>
-          <Button
-            component={Link}
-            to="/collections"
-            color="inherit"
-            startIcon={<Collections />}
-          >
-            Collections
           </Button>
         </Stack>
 

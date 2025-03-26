@@ -1,0 +1,13 @@
+HTTP/1.1 500 Internal Server Error
+Date: Wed, 26 Mar 2025 19:51:35 GMT
+Server: WSGIServer/0.2 CPython/3.13.1
+Content-Type: application/json
+Vary: Accept, origin
+Allow: POST, OPTIONS
+X-Frame-Options: DENY
+Content-Length: 37
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+{"error":"Failed to process upgrade"}

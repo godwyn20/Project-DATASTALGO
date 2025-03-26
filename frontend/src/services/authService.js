@@ -74,6 +74,41 @@ const authService = {
     return !!(token && user);
   },
 
+  getProfile: async () => {
+    try {
+      const response = await axiosInstance.get('/users/profile/');
+      if (response.data) {
+        // Update local storage with fresh data
+        localStorage.setItem('user', JSON.stringify(response.data));
+      }
+      return response;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.error || Object.values(error.response.data).flat().join(' '));
+      }
+      throw new Error('Failed to fetch profile data. Please try again.');
+    }
+  },
+
+  updateProfile: async (userData) => {
+    try {
+      const response = await axiosInstance.patch('/users/profile/', userData);
+      if (response.data) {
+        const updatedUser = response.data;
+        // Format the name with space for missing middle name
+        const middleName = updatedUser.middle_name || ' ';
+        updatedUser.name = `${updatedUser.first_name} ${middleName} ${updatedUser.last_name}`.trim();
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.error || Object.values(error.response.data).flat().join(' '));
+      }
+      throw new Error('Failed to update profile. Please try again.');
+    }
+  },
+
   setupAxiosInterceptors: () => {
     // Clear any existing interceptors to prevent duplicates
     axiosInstance.interceptors.request.eject(axiosInstance.interceptors.request.handlers[0]);

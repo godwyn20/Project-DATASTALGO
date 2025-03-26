@@ -4,6 +4,9 @@ from django.utils import timezone
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    birthdate = models.DateField(blank=True, null=True)
+    middle_name = models.CharField(max_length=150, blank=True, null=True)
     is_subscribed = models.BooleanField(default=False, null=True)
     subscription_end_date = models.DateTimeField(null=True, blank=True)
 
@@ -28,7 +31,6 @@ class User(AbstractUser):
 class SubscriptionPlan(models.Model):
     DURATION_CHOICES = [
         ('1W', '1 Week'),
-        ('6W', '6 Weeks'),
         ('4M', '4 Months'),
     ]
 
