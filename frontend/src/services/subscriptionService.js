@@ -51,8 +51,15 @@ const subscriptionService = {
         return { tier: null, error: 'unauthorized' };
       }
       // Handle 404 as an expected case when no subscription exists
+      // Return FREE tier as the default subscription instead of error
       if (error.response?.status === 404) {
-        return { tier: null, error: 'no_subscription' };
+        console.log('No subscription found, defaulting to FREE tier');
+        return { 
+          tier: SubscriptionTiers.FREE,
+          tier_details: SubscriptionFeatures[SubscriptionTiers.FREE],
+          is_active: true,
+          status: 'active'
+        };
       }
       return { tier: null, error: 'fetch_failed' };
     }
@@ -65,7 +72,7 @@ const subscriptionService = {
 
     try {
       const response = await axiosInstance.post(
-        '/api/subscriptions/upgrade/',
+        '/subscriptions/upgrade/',
         { tier: newTier }
       );
       return response.data;

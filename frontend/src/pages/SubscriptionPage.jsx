@@ -58,10 +58,11 @@ export default function SubscriptionPage() {
               <p className="text-gray-600 mb-4">{tier.description}</p>
               
               <button
-                onClick={() => handleSubscribe(tier.id)}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+                onClick={() => tier.payment_required ? handleSubscribe(tier.id) : null}
+                className={`w-full py-2 px-4 rounded transition-colors ${tier.payment_required ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-green-600 text-white cursor-default'}`}
+                disabled={!tier.payment_required}
               >
-                {tier.payment_required ? 'Subscribe Now' : 'Start Free Tier'}
+                {tier.payment_required ? 'Subscribe Now' : 'Current Plan'}
               </button>
             </div>
           ))}
