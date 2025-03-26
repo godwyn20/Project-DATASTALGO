@@ -42,8 +42,8 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'duration', 'price', 'description')
 
 class SubscriptionSerializer(serializers.ModelSerializer):
-    plan = SubscriptionPlanSerializer(read_only=True)
-    plan_id = serializers.IntegerField(write_only=True)
+    tier = SubscriptionPlanSerializer(read_only=True, source='plan')
+    tier_id = serializers.IntegerField(write_only=True, source='plan_id')
 
     class Meta:
         model = Subscription

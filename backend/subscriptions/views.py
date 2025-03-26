@@ -38,27 +38,18 @@ class UserSubscriptionViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def upgrade(self, request):
-        tier_name = request.data.get('tier')
-        if not tier_name:
+        tier_id = request.data.get('tier_id')
+        if not tier_id:
             return Response(
-                {"detail": "Subscription tier is required.",
-                 "error": "missing_tier"},
+                {"detail": "Subscription tier ID is required.",
+                 "error": "missing_tier_id"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            # Validate tier name against choices
-            valid_tiers = dict(SubscriptionTier.TIER_CHOICES)
-            if tier_name not in valid_tiers:
-                return Response(
-                    {"detail": f"Invalid subscription tier. Valid tiers are: {', '.join(valid_tiers.keys())}",
-                     "error": "invalid_tier"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            tier = SubscriptionTier.objects.get(name__iexact=tier_name)
+            tier = SubscriptionTier.objects.get(id=tier_id)
             
             # Check if user has an active subscription
             current_subscription = UserSubscription.objects.filter(

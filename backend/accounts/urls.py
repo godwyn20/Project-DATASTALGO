@@ -4,9 +4,10 @@ from .views import UserViewSet, SubscriptionPlanViewSet, SubscriptionViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
-router.register(r'subscription-plans', SubscriptionPlanViewSet)
+
 router.register(r'subscriptions', SubscriptionViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/', include(router.urls)),
+    path('api/subscriptions/upgrade/', SubscriptionViewSet.as_view({'post': 'upgrade'}), name='subscription-upgrade'),
 ]
