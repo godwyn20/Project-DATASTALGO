@@ -1,15 +1,13 @@
-Django==4.2.10
-django-cors-headers==4.3.1
-django-filter==23.5
-django-simple-jwt==5.3.1
+<<<<<<< HEAD
+Django==4.2.7
 djangorestframework==3.14.0
-djangorestframework-simplejwt==5.3.0
-Pillow==10.3.0
-python-dotenv==1.0.0
 requests==2.31.0
-sqlparse==0.4.4
-tzdata==2023.3
-whitenoise==6.6.0
+python-dotenv==1.0.0
+=======
+Django==4.2.7
+djangorestframework==3.14.0
+requests==2.31.0
+python-dotenv==1.0.0
 gunicorn==21.2.0
-dj-database-url==2.1.0
-paypalrestsdk==2.0.0
+whitenoise==6.5.0
+>>>>>>> 0b58d3d01952fe2ba7838b3b871ce7a69a446f37
