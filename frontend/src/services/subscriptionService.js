@@ -71,9 +71,30 @@ const subscriptionService = {
     }
 
     try {
+      // Get all available tiers from backend
+      const tiersResponse = await axiosInstance.get('/subscriptions/tiers/');
+      const tiers = tiersResponse.data;
+      
+      // Normalize tier names for comparison
+      const normalizedNewTier = newTier.toLowerCase().trim();
+      
+      // Find matching tier - check both direct name and our SubscriptionTiers enum
+      const selectedTier = tiers.find(tier => {
+        const normalizedTierName = tier.name.toLowerCase().trim();
+        return normalizedTierName === normalizedNewTier ||
+               normalizedTierName === SubscriptionTiers[newTier]?.toLowerCase().trim();
+      });
+      
+      if (!selectedTier) {
+        const availableTiers = tiers.map(t => t.name).join(', ');
+        throw new Error(`Subscription tier '${newTier}' not found. Available tiers: ${availableTiers}`);
+      }
+      
+      // Use the tier ID from backend for upgrade
       const response = await axiosInstance.post(
         '/subscriptions/upgrade/',
-        { tier_id: newTier }
+        { tier_id: selectedTier.id },
+        { headers: getAuthHeader() }
       );
       return response.data;
     } catch (error) {
