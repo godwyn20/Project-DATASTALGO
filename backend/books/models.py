@@ -2,11 +2,13 @@ from django.db import models
 from django.conf import settings
 
 class Book(models.Model):
-    google_books_id = models.CharField(max_length=100, unique=True)
+    google_books_id = models.CharField(max_length=100, unique=True, db_index=True)
     title = models.CharField(max_length=255)
     authors = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    cover_id = models.CharField(max_length=100, blank=True)
+    thumbnail_url = models.URLField(max_length=500, blank=True)
+    preview_link = models.URLField(max_length=500, blank=True)
+    publication_date = models.DateField(null=True, blank=True)
     isbn = models.CharField(max_length=13, blank=True)
     number_of_pages = models.IntegerField(null=True, blank=True)
     subjects = models.TextField(blank=True)

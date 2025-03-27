@@ -77,7 +77,13 @@ const Subscriptions = () => {
         return;
       }
 
-      const response = await subscriptionService.upgradeSubscription(planId);
+      // Get the tier ID based on the plan name
+      const tierIdMap = {
+        [SubscriptionTiers.FREE]: 1,  // Assuming FREE tier has ID 1
+        [SubscriptionTiers.BOOKWORM]: 2  // Assuming BOOKWORM tier has ID 2
+      };
+      
+      const response = await subscriptionService.upgradeSubscription(tierIdMap[planId] || planId);
       setCurrentTier(planId);
       setMessage({
         open: true,

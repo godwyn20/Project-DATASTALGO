@@ -5,20 +5,16 @@ from .models import SubscriptionPlan, Subscription
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password', 'first_name', 'middle_name', 'last_name', 'phone', 'birthdate', 'is_subscribed', 'subscription_end_date')
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'email': {'required': True},
-            'is_subscribed': {'read_only': True},
-            'subscription_end_date': {'read_only': True},
-            'first_name': {'required': False},
-            'middle_name': {'required': False},
-            'last_name': {'required': False},
-            'phone': {'required': False},
-            'birthdate': {'required': False}
-        }
+        fields = ('id', 'username', 'email', 'password', 'first_name', 'middle_name', 'last_name', 'phone', 'birthdate', 'is_subscribed', 'subscription_end_date', 'name')
+        extra_kwargs = {'password': {'write_only': True}, 'is_subscribed': {'read_only': True}, 'subscription_end_date': {'read_only': True}}
+
+    def get_name(self, obj):
+        middle = f" {obj.middle_name}" if obj.middle_name else ""
+        return f"{obj.first_name}{middle} {obj.last_name}".strip()
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -32,10 +28,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
+            profile_fields = ['first_name', 'middle_name', 'last_name', 'phone', 'birthdate']
             user = User.objects.create_user(
                 username=validated_data['username'],
                 email=validated_data['email'],
-                password=validated_data['password']
+                password=validated_data['password'],
+                **{field: validated_data.get(field) for field in profile_fields if field in validated_data}
             )
             return user
         except Exception as e:

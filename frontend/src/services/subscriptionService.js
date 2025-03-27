@@ -73,7 +73,7 @@ const subscriptionService = {
     try {
       const response = await axiosInstance.post(
         '/subscriptions/upgrade/',
-        { tier: newTier }
+        { tier_id: newTier }
       );
       return response.data;
     } catch (error) {

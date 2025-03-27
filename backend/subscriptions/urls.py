@@ -5,10 +5,12 @@ from .views import SubscriptionTierViewSet, UserSubscriptionViewSet, PaymentAPIV
 router = DefaultRouter()
 router.register(r'tiers', SubscriptionTierViewSet)
 
-router.register(r'subscriptions', UserSubscriptionViewSet, basename='subscription')
+# Don't register with 'subscriptions' prefix to avoid double nesting
+router.register(r'', UserSubscriptionViewSet, basename='subscription')
 
 urlpatterns = [
     path('payment/', PaymentAPIView.as_view(), name='payment-process'),
     path('current/', UserSubscriptionViewSet.as_view({'get': 'current'}), name='subscription-current'),
+    path('upgrade/', UserSubscriptionViewSet.as_view({'post': 'upgrade'}), name='subscription-upgrade'),
     path('', include(router.urls)),
 ]

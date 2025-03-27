@@ -24,13 +24,24 @@ const Profile = () => {
         const response = await authService.getProfile();
         const userData = response.data;
         setUser(userData);
+        
+        // Format birthdate to YYYY-MM-DD if it exists
+        let formattedBirthdate = '';
+        if (userData.birthdate) {
+          // Ensure birthdate is in YYYY-MM-DD format
+          const date = new Date(userData.birthdate);
+          if (!isNaN(date.getTime())) {
+            formattedBirthdate = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+          }
+        }
+        
         setFormData({
           first_name: userData.first_name || '',
           middle_name: userData.middle_name || '',
           last_name: userData.last_name || '',
           email: userData.email || '',
           phone: userData.phone || '',
-          birthdate: userData.birthdate || ''
+          birthdate: formattedBirthdate
         });
 
         const books = await bookService.getSavedBooks();
@@ -97,6 +108,8 @@ const Profile = () => {
                     margin="normal"
                     variant="outlined"
                     sx={{ mb: 2 }}
+                    disabled={true}
+                    helperText="Email cannot be changed"
                   />
                   <TextField
                     fullWidth
@@ -126,13 +139,27 @@ const Profile = () => {
                       color="primary"
                       onClick={async () => {
                         try {
-                          await authService.updateProfile(formData);
-                          const updatedUser = authService.getCurrentUser();
-                          setUser(updatedUser);
+                          // Validate birthdate format
+                          if (formData.birthdate) {
+                            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                            if (!dateRegex.test(formData.birthdate)) {
+                              alert('Please use YYYY-MM-DD format for birthdate');
+                              return;
+                            }
+                          }
+                          
+                          // Create a copy of formData without email to prevent validation errors
+                          const dataToUpdate = { ...formData };
+                          // Remove email from update data since we've disabled it in the UI
+                          delete dataToUpdate.email;
+                          
+                          const response = await authService.updateProfile(dataToUpdate);
+                          setUser(response);
                           setIsEditing(false);
+                          alert('Profile updated successfully!');
                         } catch (error) {
                           console.error('Error updating profile:', error);
-                          // You might want to show an error message to the user here
+                          alert(`Error updating profile: ${error.message}`);
                         }
                       }}
                       sx={{ flex: 1 }}
