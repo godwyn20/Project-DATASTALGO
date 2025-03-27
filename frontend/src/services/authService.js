@@ -95,9 +95,7 @@ const authService = {
       const response = await axiosInstance.patch('/users/profile/', userData);
       if (response.data) {
         const updatedUser = response.data;
-        // Format the name with space for missing middle name
-        const middleName = updatedUser.middle_name || ' ';
-        updatedUser.name = `${updatedUser.first_name} ${middleName} ${updatedUser.last_name}`.trim();
+        // Update the user data in localStorage
         localStorage.setItem('user', JSON.stringify(updatedUser));
       }
       return response.data;

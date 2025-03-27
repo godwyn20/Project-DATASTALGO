@@ -70,11 +70,30 @@ class PaymentAPIView(APIView):
             if payment.execute({'payer_id': payer_id}):
                 tier_id = payment.transactions[0].description.split()[0]
                 tier = SubscriptionTier.objects.get(id=tier_id)
-                UserSubscription.objects.create(
+                
+                # Calculate end date based on tier duration
+                start_date = timezone.now()
+                end_date = None
+                if tier.duration == '7D':
+                    end_date = start_date + timezone.timedelta(days=7)
+                elif tier.duration == 'LT':
+                    end_date = start_date + timezone.timedelta(days=365*100)  # 100 years for lifetime
+                else:
+                    end_date = start_date + timezone.timedelta(days=30)
+                
+                # Create subscription
+                subscription = UserSubscription.objects.create(
                     user=request.user,
                     tier=tier,
+                    start_date=start_date,
+                    end_date=end_date,
                     is_active=True
                 )
+                
+                # Update user's subscription status
+                request.user.is_subscribed = True
+                request.user.subscription_end_date = end_date
+                request.user.save()
                 return Response({'status': 'payment_completed'})
             return Response({'error': 'Payment execution failed'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
@@ -145,13 +164,26 @@ class UserSubscriptionViewSet(viewsets.ModelViewSet):
 
                 # Create new subscription with end_date
                 start_date = timezone.now()
+                end_date = None
+                if tier.duration == '7D':
+                    end_date = start_date + timezone.timedelta(days=7)
+                elif tier.duration == 'LT':
+                    end_date = start_date + timezone.timedelta(days=365*100)  # 100 years for lifetime
+                else:
+                    end_date = start_date + timezone.timedelta(days=30)
+                
                 subscription = UserSubscription.objects.create(
                     user=request.user,
                     tier=tier,
                     start_date=start_date,
-                    end_date=start_date + timezone.timedelta(days=30),
+                    end_date=end_date,
                     is_active=True
                 )
+                
+                # Update user's subscription status
+                request.user.is_subscribed = True
+                request.user.subscription_end_date = end_date
+                request.user.save()
                 
                 serializer = self.get_serializer(subscription)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)

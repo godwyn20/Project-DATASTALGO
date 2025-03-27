@@ -38,6 +38,7 @@ class SubscriptionPlan(models.Model):
     duration = models.CharField(max_length=2, choices=DURATION_CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True)
+    book_limit = models.IntegerField(default=10)
 
     def __str__(self):
         return f"{self.name} - {self.get_duration_display()}"

@@ -6,12 +6,7 @@ import { register, clearError } from '../store/slices/authSlice';
 
 function Register() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    birthday: '',
     email: '',
-    phoneNumber: '',
     username: '',
     password: ''
   });
@@ -46,21 +41,6 @@ function Register() {
   const validateForm = () => {
     const errors = {};
     
-    // Validate First Name
-    if (!formData.firstName.trim()) {
-      errors.firstName = 'First Name is required';
-    }
-
-    // Validate Last Name
-    if (!formData.lastName.trim()) {
-      errors.lastName = 'Last Name is required';
-    }
-
-    // Validate Birthday
-    if (!formData.birthday) {
-      errors.birthday = 'Birthday is required';
-    }
-
     // Validate Email
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
@@ -68,16 +48,6 @@ function Register() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         errors.email = 'Please enter a valid email address';
-      }
-    }
-
-    // Validate Phone Number
-    if (!formData.phoneNumber.trim()) {
-      errors.phoneNumber = 'Phone Number is required';
-    } else {
-      const phoneRegex = /^[0-9]{11}$/;
-      if (!phoneRegex.test(formData.phoneNumber)) {
-        errors.phoneNumber = 'Please enter a valid 11-digit phone number';
       }
     }
 
@@ -107,12 +77,7 @@ function Register() {
       const response = await dispatch(register(formData)).unwrap();
       setSuccessMessage('Registration successful! Welcome to Bookflix!');
       setFormData({
-        firstName: '',
-        middleName: '',
-        lastName: '',
-        birthday: '',
         email: '',
-        phoneNumber: '',
         username: '',
         password: ''
       });
@@ -184,19 +149,7 @@ function Register() {
           }}>{successMessage}</Alert>}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <TextField
-                required
-                fullWidth
-                id="firstName"
-                label="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                error={!!validationErrors.firstName}
-                helperText={validationErrors.firstName}
-                sx={textFieldStyle}
-              />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
                 required
                 fullWidth
@@ -211,39 +164,6 @@ function Register() {
                 sx={textFieldStyle}
               />
               <TextField
-                fullWidth
-                id="middleName"
-                label="Middle Name (Optional)"
-                name="middleName"
-                value={formData.middleName}
-                onChange={handleChange}
-                sx={textFieldStyle}
-              />
-              <TextField
-                required
-                fullWidth
-                id="phoneNumber"
-                label="Phone Number"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                error={!!validationErrors.phoneNumber}
-                helperText={validationErrors.phoneNumber}
-                sx={textFieldStyle}
-              />
-              <TextField
-                required
-                fullWidth
-                id="lastName"
-                label="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                error={!!validationErrors.lastName}
-                helperText={validationErrors.lastName}
-                sx={textFieldStyle}
-              />
-              <TextField
                 required
                 fullWidth
                 id="username"
@@ -254,22 +174,6 @@ function Register() {
                 onChange={handleChange}
                 error={!!validationErrors.username}
                 helperText={validationErrors.username}
-                sx={textFieldStyle}
-              />
-              <TextField
-                required
-                fullWidth
-                id="birthday"
-                label="Birthday"
-                name="birthday"
-                type="date"
-                value={formData.birthday}
-                onChange={handleChange}
-                error={!!validationErrors.birthday}
-                helperText={validationErrors.birthday}
-                InputLabelProps={{
-                  shrink: true,
-                }}
                 sx={textFieldStyle}
               />
               <TextField

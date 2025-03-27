@@ -13,7 +13,12 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'login']:
+            return [permissions.AllowAny()]
+        return super().get_permissions()
 
     def create(self, request):
         try:
@@ -43,8 +48,19 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get', 'patch'])
     def profile(self, request):
         if request.method == 'GET':
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
+            try:
+                user = request.user
+                serializer = self.get_serializer(user)
+                data = serializer.data
+                # Format the name properly
+                data['name'] = f"{user.first_name} {user.middle_name if user.middle_name else ''} {user.last_name}".strip()
+                # Add subscription information
+                data['is_subscribed'] = user.is_subscribed
+                data['subscription_end_date'] = user.subscription_end_date
+                return Response(data)
+            except Exception as e:
+                logger.error(f"Profile retrieval error: {str(e)}")
+                return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         elif request.method == 'PATCH':
             serializer = self.get_serializer(request.user, data=request.data, partial=True)
             if serializer.is_valid():

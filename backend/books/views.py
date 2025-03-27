@@ -10,15 +10,10 @@ from googlebooks.models import GoogleBook
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'google_books_id'
     
-    @action(detail=False, methods=['get'])
-    def saved(self, request):
-        # Get user's favorite books
-        favorites = UserFavorite.objects.filter(user=request.user).select_related('book')
-        books = [favorite.book for favorite in favorites]
-        serializer = self.get_serializer(books, many=True)
-        return Response(serializer.data)
+
 
     @action(detail=False, methods=['get'])
     def trending(self, request):
@@ -82,31 +77,32 @@ class BookViewSet(viewsets.ModelViewSet):
             books_data = []
             for item in data.get('items', []):
                 try:
-                    # Skip items without a key or title
-                    if not item.get('key') or not item.get('title'):
+                    # Skip items without an ID or title
+                    volume_info = item.get('volumeInfo', {})
+                    if not item.get('id') or not volume_info.get('title'):
                         continue
 
-                    # First get the open_library_id to use it in the thumbnail URL
-                    open_library_id = item.get('key', '').split('/')[-1]  # Get the last part of the key
+                    # Get the Google Books ID
+                    google_books_id = item.get('id')
                     
                     # Get volume info from the item
                     volume_info = item.get('volumeInfo', {})
                     
                     book_data = {
-                        'open_library_id': open_library_id,
+                        'google_books_id': google_books_id,
                         'title': volume_info.get('title', '').strip(),
                         'authors': ', '.join(volume_info.get('authors', ['Unknown Author'])),
                         'description': volume_info.get('description', ''),
-                        'thumbnail_url': f'https://books.google.com/books/content/images/frontcover/{open_library_id}?fife=w400-h600' if open_library_id else None,
+                        'thumbnail_url': volume_info.get('imageLinks', {}).get('thumbnail', ''),
                         'preview_link': volume_info.get('previewLink', '')
                     }
                     
-                    if not book_data['open_library_id']:
+                    if not book_data['google_books_id']:
                         logger.warning(f'Skipping book with missing ID: {item}')
                         continue
                         
                     book, _ = Book.objects.get_or_create(
-                        open_library_id=book_data['open_library_id'],
+                        google_books_id=book_data['google_books_id'],
                         defaults=book_data
                     )
                     books_data.append(book)
@@ -138,7 +134,7 @@ class BookViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=['post'])
-    def favorite(self, request, pk=None):
+    def favorite(self, request, google_books_id=None):
         book = self.get_object()
         favorite, created = UserFavorite.objects.get_or_create(
             user=request.user,
@@ -147,13 +143,13 @@ class BookViewSet(viewsets.ModelViewSet):
         return Response({'status': 'favorited' if created else 'already favorited'})
 
     @action(detail=True, methods=['post'])
-    def unfavorite(self, request, pk=None):
+    def unfavorite(self, request, google_books_id=None):
         book = self.get_object()
         UserFavorite.objects.filter(user=request.user, book=book).delete()
         return Response({'status': 'unfavorited'})
 
     @action(detail=True, methods=['post'])
-    def update_progress(self, request, pk=None):
+    def update_progress(self, request, google_books_id=None):
         book = self.get_object()
         progress = request.data.get('progress', 0)
         history, _ = ReadingHistory.objects.get_or_create(
@@ -168,7 +164,7 @@ class BookViewSet(viewsets.ModelViewSet):
 class UserFavoriteViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = UserFavorite.objects.all()
     serializer_class = UserFavoriteSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return UserFavorite.objects.filter(user=self.request.user)
@@ -176,15 +172,7 @@ class UserFavoriteViewSet(viewsets.ReadOnlyModelViewSet):
 class ReadingHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ReadingHistory.objects.all()
     serializer_class = ReadingHistorySerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return ReadingHistory.objects.filter(user=self.request.user)
-
-    @action(detail=False, methods=['get'])
-    def saved(self, request):
-        # Get user's favorite books
-        favorites = UserFavorite.objects.filter(user=request.user).select_related('book')
-        books = [favorite.book for favorite in favorites]
-        serializer = self.get_serializer(books, many=True)
-        return Response(serializer.data)
